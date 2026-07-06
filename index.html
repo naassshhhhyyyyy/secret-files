@@ -417,419 +417,448 @@
   </div>
 
   <script>
-    (function() {
-      // ---------- CONFIG ----------
-      const OWNER_PASSWORD = 'secret2026';
-      let isOwner = false;
-      let posts = [];
+  (function() {
+    // ---------- CONFIG ----------
+    const OWNER_PASSWORD = 'secret2026';
+    let isOwner = false;
+    let posts = [];
 
-      // 🔥 YOUR SUPABASE CREDENTIALS (YOURS ARE ALREADY HERE!)
-      const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcmZoamJlaGloZWhiYWRvYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNzgyNTEsImV4cCI6MjA5ODg1NDI1MX0.j541e7W56nVCESK_nsVUsGjAv2mOHGb27wwACJZKlBE';
+    // 🔥 YOUR SUPABASE CREDENTIALS
+    const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcmZoamJlaGloZWhiYWRvYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNzgyNTEsImV4cCI6MjA5ODg1NDI1MX0.j541e7W56nVCESK_nsVUsGjAv2mOHGb27wwACJZKlBE';
 
-      // Initialize Supabase
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-      // DOM refs
-      const overlay = document.getElementById('passwordOverlay');
-      const passInput = document.getElementById('passwordInput');
-      const unlockBtn = document.getElementById('unlockBtn');
-      const wrongMsg = document.getElementById('wrongPassMsg');
-      const lockBtn = document.getElementById('lockBtn');
-      const postsFeed = document.getElementById('postsFeed');
-      const createArea = document.getElementById('createPostArea');
-      const contentInput = document.getElementById('postContentInput');
-      const createBtn = document.getElementById('createPostBtn');
-      const themeDots = document.querySelectorAll('.theme-dot');
-      const syncStatus = document.getElementById('syncStatus');
-
-      // ---------- HELPER FUNCTIONS ----------
-      function updateStatus(status) {
-        if (!syncStatus) return;
-        
-        const icon = status === 'Loading' ? 'fa-sync fa-spin' :
-                    status === 'Saving' ? 'fa-upload fa-spin' :
-                    status === 'Synced' ? 'fa-check-circle' :
-                    status === 'Error' ? 'fa-exclamation-circle' :
-                    status === 'Offline' ? 'fa-wifi' : 'fa-sync';
-                    
-        const className = status === 'Synced' ? 'synced' :
-                         status === 'Error' ? 'error' :
-                         status === 'Offline' ? 'offline' : '';
-                         
-        syncStatus.className = `status-badge ${className}`;
-        syncStatus.innerHTML = `<i class="fas ${icon}"></i> ${status}`;
+    // ✅ FIXED: Initialize Supabase properly
+    let supabase;
+    try {
+      // Try different ways to load Supabase
+      if (typeof supabase !== 'undefined') {
+        supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } else if (typeof window.supabase !== 'undefined') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } else {
+        throw new Error('Supabase SDK not loaded. Check your internet connection.');
       }
+      console.log('✅ Supabase initialized successfully!');
+    } catch (error) {
+      console.error('❌ Failed to initialize Supabase:', error);
+      alert('Failed to connect to Supabase. Please refresh and try again.');
+    }
 
-      // ---------- SUPABASE CRUD OPERATIONS ----------
+    // DOM refs
+    const overlay = document.getElementById('passwordOverlay');
+    const passInput = document.getElementById('passwordInput');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const wrongMsg = document.getElementById('wrongPassMsg');
+    const lockBtn = document.getElementById('lockBtn');
+    const postsFeed = document.getElementById('postsFeed');
+    const createArea = document.getElementById('createPostArea');
+    const contentInput = document.getElementById('postContentInput');
+    const createBtn = document.getElementById('createPostBtn');
+    const themeDots = document.querySelectorAll('.theme-dot');
+    const syncStatus = document.getElementById('syncStatus');
+
+    // ---------- HELPER FUNCTIONS ----------
+    function updateStatus(status) {
+      if (!syncStatus) return;
       
-      // Fetch all posts
-      async function fetchPosts() {
-        try {
-          updateStatus('Loading');
-          
-          console.log('📡 Fetching posts from Supabase...');
-          
-          const { data, error } = await supabase
-            .from('posts')
-            .select('*')
-            .order('created_at', { ascending: false });
+      const icon = status === 'Loading' ? 'fa-sync fa-spin' :
+                  status === 'Saving' ? 'fa-upload fa-spin' :
+                  status === 'Synced' ? 'fa-check-circle' :
+                  status === 'Error' ? 'fa-exclamation-circle' :
+                  status === 'Offline' ? 'fa-wifi' : 'fa-sync';
+                  
+      const className = status === 'Synced' ? 'synced' :
+                       status === 'Error' ? 'error' :
+                       status === 'Offline' ? 'offline' : '';
+                       
+      syncStatus.className = `status-badge ${className}`;
+      syncStatus.innerHTML = `<i class="fas ${icon}"></i> ${status}`;
+    }
 
-          if (error) {
-            console.error('❌ Supabase Error:', error);
-            throw error;
-          }
-          
-          posts = data || [];
-          console.log(`✅ Loaded ${posts.length} posts`);
-          
-          updateStatus('Synced');
-          
-          // Backup to localStorage
-          localStorage.setItem('secret_posts_backup', JSON.stringify(posts));
-          
-          return posts;
-        } catch (error) {
-          console.error('❌ Error fetching posts:', error);
-          updateStatus('Error');
-          
-          // Show error in the feed
-          postsFeed.innerHTML = `
-            <div class="error-message">
-              <i class="fas fa-exclamation-triangle"></i>
-              <p><strong>Connection Error</strong></p>
-              <p style="font-size:0.9rem;margin-top:0.5rem;">
-                ${error.message || 'Could not connect to Supabase. Make sure the table "posts" exists and your credentials are correct.'}
-              </p>
-              <p style="font-size:0.8rem;margin-top:0.5rem;opacity:0.7;">
-                💡 Tip: Create the 'posts' table in Supabase SQL Editor
-              </p>
-            </div>
-          `;
-          
-          // Fallback to localStorage
-          const localData = localStorage.getItem('secret_posts_backup');
-          if (localData) {
-            try {
-              posts = JSON.parse(localData);
-              updateStatus('Offline');
-              return posts;
-            } catch(e) {}
-          }
-          return [];
+    // ---------- SUPABASE CRUD OPERATIONS ----------
+    
+    // Fetch all posts
+    async function fetchPosts() {
+      try {
+        updateStatus('Loading');
+        
+        console.log('📡 Fetching posts from Supabase...');
+        
+        if (!supabase) {
+          throw new Error('Supabase is not initialized. Please refresh the page.');
         }
-      }
+        
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      // Create a new post
-      async function createPost(content, timestamp) {
-        try {
-          updateStatus('Saving');
-          
-          console.log('📝 Creating new post...');
-          
-          const { data, error } = await supabase
-            .from('posts')
-            .insert([
-              { 
-                content: content,
-                timestamp: timestamp
-              }
-            ])
-            .select();
-
-          if (error) {
-            console.error('❌ Create Error:', error);
-            throw error;
-          }
-          
-          console.log('✅ Post created successfully');
-          updateStatus('Synced');
-          return data[0];
-        } catch (error) {
-          console.error('❌ Error creating post:', error);
-          updateStatus('Error');
-          alert(`⚠️ Could not save to Supabase: ${error.message || 'Please try again.'}`);
-          return null;
+        if (error) {
+          console.error('❌ Supabase Error:', error);
+          throw error;
         }
+        
+        posts = data || [];
+        console.log(`✅ Loaded ${posts.length} posts`);
+        
+        updateStatus('Synced');
+        
+        // Backup to localStorage
+        localStorage.setItem('secret_posts_backup', JSON.stringify(posts));
+        
+        return posts;
+      } catch (error) {
+        console.error('❌ Error fetching posts:', error);
+        updateStatus('Error');
+        
+        // Show error in the feed
+        postsFeed.innerHTML = `
+          <div class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p><strong>Connection Error</strong></p>
+            <p style="font-size:0.9rem;margin-top:0.5rem;">
+              ${error.message || 'Could not connect to Supabase. Make sure the table "posts" exists and your credentials are correct.'}
+            </p>
+            <p style="font-size:0.8rem;margin-top:0.5rem;opacity:0.7;">
+              💡 Tip: Create the 'posts' table in Supabase SQL Editor
+            </p>
+          </div>
+        `;
+        
+        // Fallback to localStorage
+        const localData = localStorage.getItem('secret_posts_backup');
+        if (localData) {
+          try {
+            posts = JSON.parse(localData);
+            updateStatus('Offline');
+            return posts;
+          } catch(e) {}
+        }
+        return [];
       }
+    }
 
-      // Update a post
-      async function updatePost(id, content, timestamp) {
-        try {
-          updateStatus('Saving');
-          
-          const { data, error } = await supabase
-            .from('posts')
-            .update({ 
+    // Create a new post
+    async function createPost(content, timestamp) {
+      try {
+        updateStatus('Saving');
+        
+        console.log('📝 Creating new post...');
+        
+        if (!supabase) {
+          throw new Error('Supabase is not initialized. Please refresh the page.');
+        }
+        
+        const { data, error } = await supabase
+          .from('posts')
+          .insert([
+            { 
               content: content,
               timestamp: timestamp
-            })
-            .eq('id', id)
-            .select();
-
-          if (error) throw error;
-          
-          updateStatus('Synced');
-          return data[0];
-        } catch (error) {
-          console.error('❌ Error updating post:', error);
-          updateStatus('Error');
-          alert(`⚠️ Could not update post: ${error.message}`);
-          return null;
-        }
-      }
-
-      // Delete a post
-      async function deletePost(id) {
-        try {
-          updateStatus('Saving');
-          
-          const { error } = await supabase
-            .from('posts')
-            .delete()
-            .eq('id', id);
-
-          if (error) throw error;
-          
-          updateStatus('Synced');
-          return true;
-        } catch (error) {
-          console.error('❌ Error deleting post:', error);
-          updateStatus('Error');
-          alert(`⚠️ Could not delete post: ${error.message}`);
-          return false;
-        }
-      }
-
-      // ---------- FORMAT CONTENT ----------
-      function formatContent(text) {
-        if (!text) return '';
-        let result = '';
-        const lines = text.split('\n');
-        for (let line of lines) {
-          let trimmed = line.trim();
-          
-          // Check for image URL
-          if (trimmed.match(/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i)) {
-            result += `<img src="${trimmed}" alt="media" loading="lazy" style="max-width:100%;max-height:300px;border-radius:16px;margin:6px 0;" onerror="this.style.display='none'">`;
-          } 
-          // Check for Spotify URL
-          else if (trimmed.includes('spotify.com/track/') || trimmed.includes('spotify.com/playlist/') || trimmed.includes('spotify.com/episode/')) {
-            let match = trimmed.match(/spotify\.com\/(track|playlist|episode)\/([a-zA-Z0-9]+)/);
-            if (match) {
-              const type = match[1];
-              const id = match[2];
-              result += `<iframe src="https://open.spotify.com/embed/${type}/${id}" style="width:100%;height:80px;border-radius:20px;" allow="encrypted-media"></iframe>`;
-            } else {
-              result += `<span>${trimmed}</span>`;
             }
-          } 
-          // Check for YouTube URL
-          else if (trimmed.includes('youtube.com/watch') || trimmed.includes('youtu.be/')) {
-            let match = trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-            if (match) {
-              result += `<iframe src="https://www.youtube.com/embed/${match[1]}" style="width:100%;height:200px;border-radius:20px;margin:6px 0;" allow="encrypted-media" allowfullscreen></iframe>`;
-            } else {
-              result += `<span>${trimmed}</span>`;
-            }
-          }
-          else {
+          ])
+          .select();
+
+        if (error) {
+          console.error('❌ Create Error:', error);
+          throw error;
+        }
+        
+        console.log('✅ Post created successfully');
+        updateStatus('Synced');
+        return data[0];
+      } catch (error) {
+        console.error('❌ Error creating post:', error);
+        updateStatus('Error');
+        alert(`⚠️ Could not save to Supabase: ${error.message || 'Please try again.'}`);
+        return null;
+      }
+    }
+
+    // Update a post
+    async function updatePost(id, content, timestamp) {
+      try {
+        updateStatus('Saving');
+        
+        if (!supabase) {
+          throw new Error('Supabase is not initialized.');
+        }
+        
+        const { data, error } = await supabase
+          .from('posts')
+          .update({ 
+            content: content,
+            timestamp: timestamp
+          })
+          .eq('id', id)
+          .select();
+
+        if (error) throw error;
+        
+        updateStatus('Synced');
+        return data[0];
+      } catch (error) {
+        console.error('❌ Error updating post:', error);
+        updateStatus('Error');
+        alert(`⚠️ Could not update post: ${error.message}`);
+        return null;
+      }
+    }
+
+    // Delete a post
+    async function deletePost(id) {
+      try {
+        updateStatus('Saving');
+        
+        if (!supabase) {
+          throw new Error('Supabase is not initialized.');
+        }
+        
+        const { error } = await supabase
+          .from('posts')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+        
+        updateStatus('Synced');
+        return true;
+      } catch (error) {
+        console.error('❌ Error deleting post:', error);
+        updateStatus('Error');
+        alert(`⚠️ Could not delete post: ${error.message}`);
+        return false;
+      }
+    }
+
+    // ---------- FORMAT CONTENT ----------
+    function formatContent(text) {
+      if (!text) return '';
+      let result = '';
+      const lines = text.split('\n');
+      for (let line of lines) {
+        let trimmed = line.trim();
+        
+        // Check for image URL
+        if (trimmed.match(/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i)) {
+          result += `<img src="${trimmed}" alt="media" loading="lazy" style="max-width:100%;max-height:300px;border-radius:16px;margin:6px 0;" onerror="this.style.display='none'">`;
+        } 
+        // Check for Spotify URL
+        else if (trimmed.includes('spotify.com/track/') || trimmed.includes('spotify.com/playlist/') || trimmed.includes('spotify.com/episode/')) {
+          let match = trimmed.match(/spotify\.com\/(track|playlist|episode)\/([a-zA-Z0-9]+)/);
+          if (match) {
+            const type = match[1];
+            const id = match[2];
+            result += `<iframe src="https://open.spotify.com/embed/${type}/${id}" style="width:100%;height:80px;border-radius:20px;" allow="encrypted-media"></iframe>`;
+          } else {
             result += `<span>${trimmed}</span>`;
           }
-          result += '<br>';
+        } 
+        // Check for YouTube URL
+        else if (trimmed.includes('youtube.com/watch') || trimmed.includes('youtu.be/')) {
+          let match = trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+          if (match) {
+            result += `<iframe src="https://www.youtube.com/embed/${match[1]}" style="width:100%;height:200px;border-radius:20px;margin:6px 0;" allow="encrypted-media" allowfullscreen></iframe>`;
+          } else {
+            result += `<span>${trimmed}</span>`;
+          }
         }
-        return result || text;
+        else {
+          result += `<span>${trimmed}</span>`;
+        }
+        result += '<br>';
+      }
+      return result || text;
+    }
+
+    // ---------- RENDER ----------
+    function renderPosts() {
+      if (!postsFeed) return;
+      
+      if (posts.length === 0) {
+        postsFeed.innerHTML = `
+          <div style="text-align:center;padding:2rem;opacity:0.5;">
+            <i class="fas fa-inbox fa-2x"></i>
+            <p style="margin-top:0.5rem;">No secrets yet. Be the first to create one!</p>
+          </div>
+        `;
+        return;
       }
 
-      // ---------- RENDER ----------
-      function renderPosts() {
-        if (!postsFeed) return;
+      let html = '';
+      posts.forEach((post, index) => {
+        const contentWithMedia = formatContent(post.content);
+        const postId = post.id;
         
-        if (posts.length === 0) {
-          postsFeed.innerHTML = `
-            <div style="text-align:center;padding:2rem;opacity:0.5;">
-              <i class="fas fa-inbox fa-2x"></i>
-              <p style="margin-top:0.5rem;">No secrets yet. Be the first to create one!</p>
+        html += `
+          <div class="post-item" data-id="${postId}">
+            <div class="post-header">
+              <span style="opacity:0.6;font-size:0.8rem;">
+                <i class="far fa-file-alt"></i> #${index+1}
+              </span>
+              <span style="font-size:0.7rem;opacity:0.4;">
+                ${new Date(post.timestamp).toLocaleString()}
+              </span>
             </div>
-          `;
-          return;
-        }
-
-        let html = '';
-        posts.forEach((post, index) => {
-          const contentWithMedia = formatContent(post.content);
-          const postId = post.id;
-          
-          html += `
-            <div class="post-item" data-id="${postId}">
-              <div class="post-header">
-                <span style="opacity:0.6;font-size:0.8rem;">
-                  <i class="far fa-file-alt"></i> #${index+1}
-                </span>
-                <span style="font-size:0.7rem;opacity:0.4;">
-                  ${new Date(post.timestamp).toLocaleString()}
-                </span>
+            <div class="post-content">${contentWithMedia}</div>
+            ${isOwner ? `
+              <div class="post-actions">
+                <button class="btn btn-outline editPostBtn" data-id="${postId}">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-danger deletePostBtn" data-id="${postId}">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
               </div>
-              <div class="post-content">${contentWithMedia}</div>
-              ${isOwner ? `
-                <div class="post-actions">
-                  <button class="btn btn-outline editPostBtn" data-id="${postId}">
-                    <i class="fas fa-edit"></i> Edit
-                  </button>
-                  <button class="btn btn-danger deletePostBtn" data-id="${postId}">
-                    <i class="fas fa-trash"></i> Delete
-                  </button>
-                </div>
-              ` : ''}
-              <div class="post-timestamp">${new Date(post.timestamp).toLocaleDateString()}</div>
-            </div>
-          `;
-        });
-        
-        postsFeed.innerHTML = html;
+            ` : ''}
+            <div class="post-timestamp">${new Date(post.timestamp).toLocaleDateString()}</div>
+          </div>
+        `;
+      });
+      
+      postsFeed.innerHTML = html;
 
-        // Attach event listeners for edit/delete (only if owner)
-        if (isOwner) {
-          document.querySelectorAll('.editPostBtn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              const id = parseInt(btn.dataset.id);
-              const post = posts.find(p => p.id === id);
-              if (post) {
-                const newContent = prompt('Edit your secret:', post.content);
-                if (newContent !== null && newContent.trim() !== '') {
-                  const updated = await updatePost(id, newContent.trim(), new Date().toISOString());
-                  if (updated) {
-                    await loadPosts();
-                  }
-                }
-              }
-            });
-          });
-
-          document.querySelectorAll('.deletePostBtn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              const id = parseInt(btn.dataset.id);
-              if (confirm('Permanently delete this secret?')) {
-                const success = await deletePost(id);
-                if (success) {
+      // Attach event listeners for edit/delete (only if owner)
+      if (isOwner) {
+        document.querySelectorAll('.editPostBtn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = parseInt(btn.dataset.id);
+            const post = posts.find(p => p.id === id);
+            if (post) {
+              const newContent = prompt('Edit your secret:', post.content);
+              if (newContent !== null && newContent.trim() !== '') {
+                const updated = await updatePost(id, newContent.trim(), new Date().toISOString());
+                if (updated) {
                   await loadPosts();
                 }
               }
-            });
+            }
           });
-        }
-      }
-
-      // ---------- PASSWORD ----------
-      function unlock(password) {
-        if (password === OWNER_PASSWORD) {
-          isOwner = true;
-          overlay.classList.add('hidden');
-          createArea.style.display = 'block';
-          wrongMsg.textContent = '';
-          passInput.value = '';
-          loadPosts();
-          return true;
-        } else {
-          wrongMsg.textContent = '❌ Wrong password. Try again.';
-          passInput.value = '';
-          passInput.focus();
-          return false;
-        }
-      }
-
-      function lock() {
-        isOwner = false;
-        overlay.classList.remove('hidden');
-        createArea.style.display = 'none';
-        passInput.value = '';
-        wrongMsg.textContent = '';
-        renderPosts();
-      }
-
-      // ---------- LOAD POSTS ----------
-      async function loadPosts() {
-        await fetchPosts();
-        renderPosts();
-      }
-
-      // ---------- EVENTS ----------
-      unlockBtn.addEventListener('click', () => unlock(passInput.value));
-      passInput.addEventListener('keydown', (e) => { 
-        if (e.key === 'Enter') unlock(passInput.value); 
-      });
-      lockBtn.addEventListener('click', lock);
-
-      createBtn.addEventListener('click', async () => {
-        if (!isOwner) return alert('You are not the owner.');
-        const content = contentInput.value.trim();
-        if (content === '') return alert('Write something first.');
-        
-        const newPost = await createPost(content, new Date().toISOString());
-        if (newPost) {
-          await loadPosts();
-          contentInput.value = '';
-        }
-      });
-
-      // Theme switching
-      themeDots.forEach(dot => {
-        dot.addEventListener('click', function() {
-          const theme = this.dataset.theme;
-          document.body.className = theme;
-          themeDots.forEach(d => d.classList.remove('active'));
-          this.classList.add('active');
-          localStorage.setItem('selected_theme', theme);
         });
-      });
 
-      // Restore theme
-      const savedTheme = localStorage.getItem('selected_theme') || 'dark';
-      document.body.className = savedTheme;
-      themeDots.forEach(dot => {
-        if (dot.dataset.theme === savedTheme) {
-          dot.classList.add('active');
-        }
-      });
+        document.querySelectorAll('.deletePostBtn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = parseInt(btn.dataset.id);
+            if (confirm('Permanently delete this secret?')) {
+              const success = await deletePost(id);
+              if (success) {
+                await loadPosts();
+              }
+            }
+          });
+        });
+      }
+    }
 
-      // Block context menu & devtools
-      document.addEventListener('contextmenu', (e) => { 
-        e.preventDefault(); 
-        return false; 
-      });
-      
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'F12' || 
-            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || 
-            (e.ctrlKey && e.key === 'U')) {
-          e.preventDefault();
-          return false;
-        }
-        if (e.ctrlKey && e.key === 'p') { 
-          e.preventDefault(); 
-          return false; 
-        }
-      });
+    // ---------- PASSWORD ----------
+    function unlock(password) {
+      if (password === OWNER_PASSWORD) {
+        isOwner = true;
+        overlay.classList.add('hidden');
+        createArea.style.display = 'block';
+        wrongMsg.textContent = '';
+        passInput.value = '';
+        loadPosts();
+        return true;
+      } else {
+        wrongMsg.textContent = '❌ Wrong password. Try again.';
+        passInput.value = '';
+        passInput.focus();
+        return false;
+      }
+    }
 
-      // ---------- INIT ----------
+    function lock() {
+      isOwner = false;
       overlay.classList.remove('hidden');
       createArea.style.display = 'none';
-      setTimeout(() => passInput.focus(), 200);
-      
-      // Try to load from cache first
-      const localBackup = localStorage.getItem('secret_posts_backup');
-      if (localBackup) {
-        try {
-          posts = JSON.parse(localBackup);
-          renderPosts();
-        } catch(e) {}
-      }
+      passInput.value = '';
+      wrongMsg.textContent = '';
+      renderPosts();
+    }
 
-      console.log('🚀 Secret Files App Loaded');
-      console.log('📊 Supabase URL:', SUPABASE_URL);
-      console.log('🔑 Supabase Key:', SUPABASE_KEY.substring(0, 20) + '...');
-      console.log('💡 Login with password: secret2026');
-    })();
-  </script>
+    // ---------- LOAD POSTS ----------
+    async function loadPosts() {
+      await fetchPosts();
+      renderPosts();
+    }
+
+    // ---------- EVENTS ----------
+    unlockBtn.addEventListener('click', () => unlock(passInput.value));
+    passInput.addEventListener('keydown', (e) => { 
+      if (e.key === 'Enter') unlock(passInput.value); 
+    });
+    lockBtn.addEventListener('click', lock);
+
+    createBtn.addEventListener('click', async () => {
+      if (!isOwner) return alert('You are not the owner.');
+      const content = contentInput.value.trim();
+      if (content === '') return alert('Write something first.');
+      
+      const newPost = await createPost(content, new Date().toISOString());
+      if (newPost) {
+        await loadPosts();
+        contentInput.value = '';
+      }
+    });
+
+    // Theme switching
+    themeDots.forEach(dot => {
+      dot.addEventListener('click', function() {
+        const theme = this.dataset.theme;
+        document.body.className = theme;
+        themeDots.forEach(d => d.classList.remove('active'));
+        this.classList.add('active');
+        localStorage.setItem('selected_theme', theme);
+      });
+    });
+
+    // Restore theme
+    const savedTheme = localStorage.getItem('selected_theme') || 'dark';
+    document.body.className = savedTheme;
+    themeDots.forEach(dot => {
+      if (dot.dataset.theme === savedTheme) {
+        dot.classList.add('active');
+      }
+    });
+
+    // Block context menu & devtools
+    document.addEventListener('contextmenu', (e) => { 
+      e.preventDefault(); 
+      return false; 
+    });
+    
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || 
+          (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
+        return false;
+      }
+      if (e.ctrlKey && e.key === 'p') { 
+        e.preventDefault(); 
+        return false; 
+      }
+    });
+
+    // ---------- INIT ----------
+    overlay.classList.remove('hidden');
+    createArea.style.display = 'none';
+    setTimeout(() => passInput.focus(), 200);
+    
+    // Try to load from cache first
+    const localBackup = localStorage.getItem('secret_posts_backup');
+    if (localBackup) {
+      try {
+        posts = JSON.parse(localBackup);
+        renderPosts();
+      } catch(e) {}
+    }
+
+    console.log('🚀 Secret Files App Loaded');
+    console.log('📊 Supabase URL:', SUPABASE_URL);
+    console.log('💡 Login with password: secret2026');
+  })();
+</script>
 </body>
 </html>
