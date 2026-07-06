@@ -1,7 +1,6 @@
 // =============================================
 // COMPLETE JAVASCRIPT - FULL IMPLEMENTATION
 // =============================================
-
 (function() {
   // ---------- CONFIG ----------
   const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';
