@@ -3,181 +3,455 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>🔐 Secret Files</title>
+  <title>🔐 Secret Social</title>
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       background: #0b0d10;
       color: #f0f3f8;
       transition: background 0.3s, color 0.2s;
       min-height: 100vh;
-      padding: 1.5rem;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-
-    body.light {
-      background: #f5f7fa;
-      color: #1e2329;
-    }
-    body.blue {
-      background: linear-gradient(145deg, #0a1f2e, #0b2b3f);
-      color: #e3f0ff;
-    }
-    body.green {
-      background: linear-gradient(145deg, #0f2a1a, #143f25);
-      color: #daf5e8;
-    }
-    body.rose {
-      background: linear-gradient(145deg, #2f1a2b, #4a243d);
-      color: #fae2f0;
-    }
-    body.amber {
-      background: linear-gradient(145deg, #2f2413, #4d3a1a);
-      color: #faf0d6;
-    }
-
+    
+    body.light { background: #f5f7fa; color: #1e2329; }
+    body.blue { background: linear-gradient(145deg, #0a1f2e, #0b2b3f); color: #e3f0ff; }
+    body.green { background: linear-gradient(145deg, #0f2a1a, #143f25); color: #daf5e8; }
+    body.rose { background: linear-gradient(145deg, #2f1a2b, #4a243d); color: #fae2f0; }
+    body.amber { background: linear-gradient(145deg, #2f2413, #4d3a1a); color: #faf0d6; }
+    
     .app-container {
-      max-width: 820px;
+      max-width: 860px;
       width: 100%;
       background: rgba(20, 24, 30, 0.7);
       backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
       border-radius: 42px;
       padding: 1.8rem 2rem;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-      transition: background 0.3s, box-shadow 0.3s;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.04);
     }
     body.light .app-container {
       background: rgba(240, 244, 250, 0.75);
-      backdrop-filter: blur(4px);
       border: 1px solid rgba(0,0,0,0.04);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
     }
-
+    
+    /* ============================================= */
+    /* AUTH MODAL                                    */
+    /* ============================================= */
+    #authModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 10, 14, 0.92);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 1.5rem;
+    }
+    #authModal.show { display: flex; }
+    
+    .auth-card {
+      background: rgba(25, 30, 38, 0.95);
+      padding: 2.5rem;
+      border-radius: 48px;
+      max-width: 420px;
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+    }
+    .auth-card h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+    .auth-card input {
+      width: 100%;
+      padding: 0.8rem 1.2rem;
+      border-radius: 60px;
+      border: none;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 0.8rem;
+      outline: 1px solid rgba(255,255,255,0.1);
+      transition: 0.2s;
+    }
+    .auth-card input:focus { outline: 2px solid #3b82f6; }
+    .auth-card input::placeholder { color: rgba(255,255,255,0.3); }
+    .auth-card .btn { width: 100%; justify-content: center; padding: 0.8rem; }
+    .auth-card .switch-link {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      opacity: 0.6;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .auth-card .switch-link:hover { opacity: 1; }
+    .auth-error { color: #f87171; margin-top: 0.5rem; font-size: 0.85rem; text-align: center; }
+    
+    /* ============================================= */
+    /* TOP BAR                                       */
+    /* ============================================= */
     .top-bar {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 0.8rem 0.5rem;
-      margin-bottom: 2rem;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
     }
     .logo {
       display: flex;
       align-items: center;
       gap: 0.6rem;
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       font-weight: 700;
-      letter-spacing: -0.5px;
     }
-    .logo i {
-      color: #ffb347;
-      text-shadow: 0 0 10px #ff9f2e80;
-    }
-    .toolbar-actions {
+    .logo i { color: #ffb347; }
+    
+    .user-info {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       gap: 0.6rem;
+      flex-wrap: wrap;
     }
-
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #3b82f6;
+      cursor: pointer;
+    }
+    .user-avatar-placeholder {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #3b82f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    
     .btn {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255,255,255,0.06);
       border: none;
-      padding: 0.5rem 1.1rem;
+      padding: 0.4rem 1rem;
       border-radius: 100px;
       color: inherit;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
       cursor: pointer;
-      transition: 0.2s ease;
-      backdrop-filter: blur(4px);
+      transition: 0.2s;
       border: 1px solid rgba(255,255,255,0.04);
     }
-    .btn i { font-size: 1rem; }
-    .btn-primary {
-      background: #3b82f6;
-      color: white;
-      box-shadow: 0 4px 12px #3b82f640;
-      border: none;
-    }
+    .btn-primary { background: #3b82f6; color: white; border: none; }
     .btn-primary:hover { background: #2563eb; transform: scale(0.97); }
-    .btn-danger {
-      background: #e5484d;
-      color: white;
-    }
+    .btn-danger { background: #e5484d; color: white; }
     .btn-danger:hover { background: #c73b3f; }
-    .btn-outline {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-    .btn-outline:hover { background: rgba(255,255,255,0.06); }
-    .btn-success {
-      background: #22c55e;
-      color: white;
-    }
+    .btn-gold { background: #f59e0b; color: #1e2329; }
+    .btn-gold:hover { background: #d97706; }
+    .btn-success { background: #22c55e; color: white; }
     .btn-success:hover { background: #16a34a; }
-    .btn-gold {
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); }
+    .btn-outline:hover { background: rgba(255,255,255,0.06); }
+    .btn-sm { padding: 0.2rem 0.7rem; font-size: 0.75rem; }
+    .btn-follow { background: #3b82f6; color: white; }
+    .btn-follow:hover { background: #2563eb; }
+    .btn-unfollow { background: #6b7280; color: white; }
+    .btn-unfollow:hover { background: #4b5563; }
+    
+    /* ============================================= */
+    /* FEED NAV                                      */
+    /* ============================================= */
+    .feed-nav {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .feed-nav-btn {
+      background: none;
+      border: none;
+      color: inherit;
+      padding: 0.5rem 1.2rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      opacity: 0.5;
+      transition: 0.2s;
+    }
+    .feed-nav-btn:hover { opacity: 0.8; background: rgba(255,255,255,0.05); }
+    .feed-nav-btn.active { opacity: 1; background: rgba(59,130,246,0.2); color: #3b82f6; }
+    
+    /* ============================================= */
+    /* CREATE POST AREA                              */
+    /* ============================================= */
+    .create-post-area {
+      background: rgba(0,0,0,0.15);
+      border-radius: 32px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px dashed rgba(255,255,255,0.08);
+      display: none;
+    }
+    .create-post-area.show { display: block; }
+    
+    #quillEditor {
+      min-height: 150px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 16px;
+      color: inherit;
+    }
+    .ql-toolbar.ql-snow {
+      border: none;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px 16px 0 0;
+      padding: 0.5rem;
+    }
+    .ql-container.ql-snow {
+      border: none;
+      min-height: 120px;
+    }
+    .ql-editor {
+      color: inherit;
+      min-height: 100px;
+    }
+    .ql-editor.ql-blank::before { color: rgba(255,255,255,0.3); }
+    .ql-toolbar.ql-snow .ql-stroke { stroke: currentColor; }
+    .ql-toolbar.ql-snow .ql-fill { fill: currentColor; }
+    
+    .post-options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 0.5rem;
+      margin: 0.8rem 0;
+    }
+    .post-option-btn {
+      padding: 0.5rem 0.8rem;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: inherit;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+    .post-option-btn.active { border-color: #3b82f6; background: rgba(59,130,246,0.2); }
+    .post-option-btn:hover { border-color: #3b82f6; }
+    
+    .file-input-wrapper { margin: 0.5rem 0; }
+    .file-input-wrapper input[type="file"] { display: none; }
+    .file-preview { max-width: 200px; max-height: 150px; border-radius: 12px; display: none; margin: 0.5rem 0; }
+    .file-preview.show { display: block; }
+    
+    .spotify-input-wrapper { display: flex; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+    .spotify-input-wrapper input {
+      flex: 1;
+      padding: 0.5rem 1rem;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.2);
+      color: inherit;
+    }
+    .spotify-input-wrapper input:focus { outline: 2px solid #3b82f6; }
+    
+    .create-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; }
+    
+    /* ============================================= */
+    /* POST ITEMS                                    */
+    /* ============================================= */
+    .post-item {
+      background: rgba(0,0,0,0.2);
+      border-radius: 28px;
+      padding: 1.5rem 1.8rem;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid #3b82f6;
+      transition: 0.2s;
+    }
+    body.light .post-item { background: rgba(255,255,255,0.5); }
+    .post-item.pinned { border-left-color: #f59e0b; }
+    
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .post-author {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+    .post-author:hover .post-author-name { text-decoration: underline; }
+    .post-author-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .post-author-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .post-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0.3rem 0;
+    }
+    .post-meta {
+      font-size: 0.7rem;
+      opacity: 0.5;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .post-content {
+      font-size: 1rem;
+      line-height: 1.7;
+      margin: 0.5rem 0;
+    }
+    .post-content img { max-width: 100%; border-radius: 16px; margin: 0.3rem 0; }
+    .post-content iframe { width: 100%; height: 80px; border-radius: 16px; border: none; }
+    
+    .pinned-badge {
       background: #f59e0b;
       color: #1e2329;
-    }
-    .btn-gold:hover { background: #d97706; }
-
-    .status-badge {
-      display: inline-block;
-      padding: 0.2rem 0.8rem;
+      padding: 0.1rem 0.6rem;
       border-radius: 20px;
-      font-size: 0.7rem;
-      background: rgba(59, 130, 246, 0.2);
-      color: #60a5fa;
+      font-size: 0.6rem;
+      font-weight: 700;
     }
-    .status-badge.synced { color: #22c55e; background: rgba(34, 197, 94, 0.2); }
-    .status-badge.error { color: #ef4444; background: rgba(239, 68, 68, 0.2); }
-    .status-badge.offline { color: #f59e0b; background: rgba(245, 158, 11, 0.2); }
-
-    /* Admin Modal */
-    #adminModal {
+    
+    /* Reactions */
+    .post-reactions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin: 0.5rem 0;
+    }
+    .reaction-btn {
+      background: rgba(255,255,255,0.05);
+      border: none;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      color: inherit;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+    .reaction-btn:hover { background: rgba(255,255,255,0.1); }
+    .reaction-btn.active { background: rgba(59,130,246,0.3); }
+    .reaction-count { font-size: 0.7rem; opacity: 0.6; }
+    
+    /* Comments */
+    .comments-section {
+      margin-top: 0.8rem;
+      padding-top: 0.8rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .comment-item {
+      padding: 0.5rem 0;
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+    }
+    .comment-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; cursor: pointer; }
+    .comment-body { flex: 1; font-size: 0.9rem; }
+    .comment-author { font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+    .comment-author:hover { text-decoration: underline; }
+    .comment-text { margin-top: 0.1rem; }
+    .comment-time { font-size: 0.65rem; opacity: 0.4; }
+    .comment-actions { display: flex; gap: 0.5rem; margin-top: 0.2rem; }
+    .comment-actions .btn { padding: 0.1rem 0.5rem; font-size: 0.65rem; }
+    
+    .comment-input-wrapper {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .comment-input-wrapper input {
+      flex: 1;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      border: none;
+      background: rgba(0,0,0,0.2);
+      color: inherit;
+      outline: 1px solid rgba(255,255,255,0.05);
+    }
+    .comment-input-wrapper input:focus { outline: 2px solid #3b82f6; }
+    
+    .post-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.6rem;
+    }
+    .post-actions .btn { padding: 0.2rem 0.8rem; font-size: 0.75rem; }
+    
+    /* ============================================= */
+    /* QR MODAL                                      */
+    /* ============================================= */
+    #qrModal {
       position: fixed;
       inset: 0;
-      background: rgba(8, 10, 14, 0.85);
+      background: rgba(8,10,14,0.9);
       backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 999;
+      z-index: 9998;
       padding: 1.5rem;
     }
-    #adminModal.show {
-      display: flex;
-    }
-    .admin-modal-card {
-      background: rgba(25, 30, 38, 0.95);
-      padding: 2.5rem 2.2rem;
-      border-radius: 48px;
-      max-width: 400px;
+    #qrModal.show { display: flex; }
+    .qr-card {
+      background: rgba(25,30,38,0.95);
+      padding: 2rem;
+      border-radius: 32px;
+      max-width: 350px;
       width: 100%;
-      border: 1px solid rgba(255,255,255,0.06);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.8);
       text-align: center;
       position: relative;
     }
-    .admin-modal-card .close-btn {
+    .qr-card .close-btn {
       position: absolute;
       top: 1rem;
       right: 1.5rem;
@@ -186,79 +460,34 @@
       color: rgba(255,255,255,0.4);
       font-size: 1.5rem;
       cursor: pointer;
-      transition: 0.2s;
     }
-    .admin-modal-card .close-btn:hover {
-      color: #fff;
-      transform: rotate(90deg);
-    }
-    .admin-modal-card h2 {
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      display: flex;
-      gap: 0.6rem;
-      justify-content: center;
-      align-items: center;
-    }
-    .admin-modal-card p {
-      opacity: 0.6;
-      font-size: 0.9rem;
-      margin-bottom: 1.5rem;
-    }
-    .admin-modal-card input {
-      width: 100%;
-      padding: 0.9rem 1.2rem;
-      border-radius: 60px;
-      border: none;
-      background: rgba(0,0,0,0.3);
-      color: #fff;
-      font-size: 1.1rem;
-      margin-bottom: 1.2rem;
-      outline: 1px solid rgba(255,255,255,0.1);
-      transition: 0.2s;
-    }
-    .admin-modal-card input:focus {
-      outline: 2px solid #3b82f6;
-    }
-    .admin-modal-card .btn {
-      width: 100%;
-      justify-content: center;
-      font-size: 1.1rem;
-      padding: 0.8rem;
-    }
-    .admin-wrong-pass {
-      color: #f87171;
-      margin-top: 0.8rem;
-      font-size: 0.9rem;
-    }
-
-    /* Settings Modal */
+    .qr-card .close-btn:hover { color: #fff; transform: rotate(90deg); }
+    #qrContainer { display: flex; justify-content: center; margin: 1rem 0; }
+    
+    /* ============================================= */
+    /* SETTINGS MODAL                                */
+    /* ============================================= */
     #settingsModal {
       position: fixed;
       inset: 0;
-      background: rgba(8, 10, 14, 0.85);
+      background: rgba(8,10,14,0.9);
       backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 9997;
       padding: 1.5rem;
     }
-    #settingsModal.show {
-      display: flex;
-    }
-    .settings-modal-card {
-      background: rgba(25, 30, 38, 0.95);
-      padding: 2.5rem 2.2rem;
-      border-radius: 48px;
+    #settingsModal.show { display: flex; }
+    .settings-card {
+      background: rgba(25,30,38,0.95);
+      padding: 2rem;
+      border-radius: 32px;
       max-width: 400px;
       width: 100%;
-      border: 1px solid rgba(255,255,255,0.06);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.8);
       position: relative;
     }
-    .settings-modal-card .close-btn {
+    .settings-card .close-btn {
       position: absolute;
       top: 1rem;
       right: 1.5rem;
@@ -267,28 +496,13 @@
       color: rgba(255,255,255,0.4);
       font-size: 1.5rem;
       cursor: pointer;
-      transition: 0.2s;
     }
-    .settings-modal-card .close-btn:hover {
-      color: #fff;
-      transform: rotate(90deg);
-    }
-    .settings-modal-card h3 {
-      margin-bottom: 1.5rem;
-      font-weight: 600;
-      display: flex;
-      gap: 0.6rem;
-      align-items: center;
-    }
-    .settings-modal-card h3 i {
-      color: #60a5fa;
-    }
-
+    .settings-card .close-btn:hover { color: #fff; transform: rotate(90deg); }
     .settings-theme-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 0.8rem;
-      margin-top: 0.5rem;
+      margin-top: 1rem;
     }
     .settings-theme-option {
       display: flex;
@@ -302,921 +516,1349 @@
       cursor: pointer;
       transition: 0.2s;
     }
-    .settings-theme-option:hover {
-      border-color: rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.06);
-    }
-    .settings-theme-option.active {
-      border-color: #3b82f6;
-      background: rgba(59, 130, 246, 0.15);
-    }
+    .settings-theme-option:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
+    .settings-theme-option.active { border-color: #3b82f6; background: rgba(59,130,246,0.15); }
     .settings-theme-option .theme-preview {
       width: 40px;
       height: 40px;
       border-radius: 50%;
       border: 2px solid rgba(255,255,255,0.1);
     }
-    .settings-theme-option .theme-name {
-      font-size: 0.7rem;
-      opacity: 0.6;
-    }
-    .settings-theme-option.active .theme-name {
-      opacity: 1;
-      color: #3b82f6;
-    }
-
-    .posts-section {
-      margin-top: 1.8rem;
-    }
-    .post-item {
-      background: rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(2px);
-      border-radius: 28px;
-      padding: 1.5rem 1.8rem;
-      margin-bottom: 1.5rem;
-      border-left: 4px solid #3b82f6;
-      transition: 0.2s;
-      word-break: break-word;
-    }
-    body.light .post-item {
-      background: rgba(255, 255, 255, 0.5);
-      border-left-color: #2563eb;
-    }
-    .post-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 0.5rem 0.8rem;
-      margin-bottom: 0.5rem;
-    }
-    .post-content {
-      font-size: 1.05rem;
-      line-height: 1.6;
-      margin: 0.5rem 0 0.8rem 0;
-      white-space: pre-wrap;
-    }
-    .post-content img, .post-content video {
-      max-width: 100%;
-      border-radius: 20px;
-      margin: 0.5rem 0;
-    }
-    .post-content iframe {
-      width: 100%;
-      height: 80px;
-      border: none;
-      border-radius: 20px;
-    }
-    .post-media {
-      margin: 0.5rem 0;
-    }
-    .post-actions {
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      margin-top: 0.6rem;
-    }
-    .post-actions .btn {
-      padding: 0.3rem 1rem;
-      font-size: 0.8rem;
-    }
-    .post-timestamp {
-      font-size: 0.7rem;
-      opacity: 0.5;
-      margin-top: 0.4rem;
-    }
-    .post-type-badge {
-      font-size: 0.6rem;
-      padding: 0.15rem 0.6rem;
-      border-radius: 20px;
-      background: rgba(59, 130, 246, 0.2);
-      color: #60a5fa;
-    }
-
-    .create-post-area {
-      background: rgba(0,0,0,0.15);
-      border-radius: 32px;
-      padding: 1.5rem 1.8rem;
-      margin-bottom: 2rem;
-      border: 1px dashed rgba(255,255,255,0.08);
-    }
-    .create-post-area textarea {
-      width: 100%;
-      padding: 0.9rem 1.2rem;
-      border-radius: 24px;
-      border: none;
-      background: rgba(0,0,0,0.2);
-      color: inherit;
-      font-size: 1rem;
-      resize: vertical;
-      min-height: 70px;
-      outline: 1px solid rgba(255,255,255,0.05);
-      transition: 0.2s;
-      font-family: inherit;
-    }
-    .create-post-area textarea:focus {
-      outline: 2px solid #3b82f6;
-    }
-
-    .post-options-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 0.6rem;
-      margin: 0.8rem 0;
-    }
-    .post-option-btn {
-      padding: 0.6rem 0.8rem;
-      border-radius: 16px;
-      border: 2px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.03);
-      color: inherit;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 0.75rem;
-      display: flex;
+    .settings-theme-option .theme-name { font-size: 0.7rem; opacity: 0.6; }
+    .settings-theme-option.active .theme-name { opacity: 1; color: #3b82f6; }
+    
+    /* ============================================= */
+    /* PROFILE MODAL                                 */
+    /* ============================================= */
+    #profileModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(8,10,14,0.9);
+      backdrop-filter: blur(8px);
+      display: none;
       align-items: center;
       justify-content: center;
-      gap: 0.4rem;
+      z-index: 9996;
+      padding: 1.5rem;
     }
-    .post-option-btn:hover {
-      border-color: #3b82f6;
-      background: rgba(59, 130, 246, 0.1);
+    #profileModal.show { display: flex; }
+    .profile-card {
+      background: rgba(25,30,38,0.95);
+      padding: 2rem;
+      border-radius: 32px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      position: relative;
     }
-    .post-option-btn.active {
-      border-color: #3b82f6;
-      background: rgba(59, 130, 246, 0.2);
-    }
-    .post-option-btn i {
-      font-size: 1rem;
-    }
-
-    .file-input-wrapper {
-      margin: 0.5rem 0;
-    }
-    .file-input-wrapper input[type="file"] {
-      display: none;
-    }
-    .file-input-wrapper .file-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border-radius: 16px;
-      background: rgba(59, 130, 246, 0.15);
-      border: 1px dashed rgba(59, 130, 246, 0.3);
+    .profile-card .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.4);
+      font-size: 1.5rem;
       cursor: pointer;
-      transition: 0.2s;
-      font-size: 0.9rem;
     }
-    .file-input-wrapper .file-label:hover {
-      background: rgba(59, 130, 246, 0.25);
+    .profile-card .close-btn:hover { color: #fff; transform: rotate(90deg); }
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #3b82f6;
+      margin: 0.5rem auto;
     }
-    .file-preview {
-      max-width: 200px;
-      max-height: 150px;
-      border-radius: 12px;
-      margin: 0.5rem 0;
-      display: none;
-    }
-    .file-preview.show {
-      display: block;
-    }
-
-    .spotify-input-wrapper {
+    .profile-username { font-size: 1.3rem; font-weight: 600; }
+    .profile-bio { opacity: 0.6; font-size: 0.9rem; margin: 0.5rem 0; }
+    .profile-stats {
       display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      margin: 0.5rem 0;
+      justify-content: center;
+      gap: 2rem;
+      margin: 1rem 0;
     }
-    .spotify-input-wrapper input {
-      flex: 1;
-      padding: 0.6rem 1rem;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(0,0,0,0.2);
-      color: inherit;
-      font-size: 0.9rem;
-    }
-    .spotify-input-wrapper input:focus {
-      outline: 2px solid #3b82f6;
-    }
-
-    .create-actions {
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      margin-top: 0.8rem;
-    }
-
-    .media-hint {
-      font-size: 0.8rem;
-      opacity: 0.6;
-      margin: 0.4rem 0 0.2rem;
-    }
-
-    .admin-badge {
-      display: inline-block;
-      padding: 0.2rem 0.8rem;
-      border-radius: 20px;
-      font-size: 0.7rem;
-      background: rgba(245, 158, 11, 0.2);
-      color: #fbbf24;
-    }
-
-    @media (max-width: 600px) {
-      .app-container { padding: 1.2rem 1rem; }
-      .top-bar { flex-direction: column; align-items: stretch; }
-      .logo { font-size: 1.6rem; justify-content: center; }
-      .toolbar-actions { justify-content: center; }
-      .post-item { padding: 1.2rem; }
-      .post-options-grid { grid-template-columns: repeat(2, 1fr); }
-      .settings-theme-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 420px) {
-      .admin-modal-card, .settings-modal-card { padding: 2rem 1.2rem; }
-      .btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
-      .post-options-grid { grid-template-columns: 1fr 1fr; }
-      .settings-theme-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    * {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-    input, textarea {
-      -webkit-user-select: text;
-      -moz-user-select: text;
-      -ms-user-select: text;
-      user-select: text;
-    }
-    img {
-      -webkit-user-drag: none;
-      user-drag: none;
-      pointer-events: auto;
-    }
-
+    .profile-stat { text-align: center; cursor: pointer; }
+    .profile-stat:hover .profile-stat-number { color: #3b82f6; }
+    .profile-stat-number { font-size: 1.2rem; font-weight: 600; transition: 0.2s; }
+    .profile-stat-label { font-size: 0.7rem; opacity: 0.5; }
+    .profile-actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+    
     .loading-spinner {
       display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(255,255,255,0.1);
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255,255,255,0.1);
       border-radius: 50%;
       border-top-color: #3b82f6;
       animation: spin 0.8s linear infinite;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .empty-state { text-align: center; padding: 2rem; opacity: 0.5; }
+    .empty-state i { font-size: 2rem; }
+    .empty-state p { margin-top: 0.5rem; }
+    
+    /* ============================================= */
+    /* FOLLOW SUGGESTIONS                           */
+    /* ============================================= */
+    .suggestions-box {
+      background: rgba(0,0,0,0.15);
+      border-radius: 20px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
     }
-
-    .error-message {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      border-radius: 12px;
-      padding: 1rem;
-      margin: 1rem 0;
-      color: #fca5a5;
-      text-align: center;
+    .suggestions-box h4 { margin-bottom: 0.8rem; opacity: 0.6; font-size: 0.9rem; }
+    .suggestion-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
     }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-user {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+    .suggestion-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .suggestion-username { font-size: 0.85rem; font-weight: 500; }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      .app-container { padding: 1rem; }
+      .top-bar { flex-direction: column; align-items: stretch; }
+      .logo { justify-content: center; }
+      .user-info { justify-content: center; }
+      .post-options-grid { grid-template-columns: repeat(2,1fr); }
+      .settings-theme-grid { grid-template-columns: repeat(2,1fr); }
+      .feed-nav { justify-content: center; }
+      .profile-stats { gap: 1rem; }
+    }
+    
+    * { -webkit-user-select: none; user-select: none; }
+    input, textarea { -webkit-user-select: text; user-select: text; }
   </style>
 </head>
 <body>
-  <!-- ADMIN MODAL -->
-  <div id="adminModal">
-    <div class="admin-modal-card">
-      <button class="close-btn" id="closeAdminModal"><i class="fas fa-times"></i></button>
-      <h2><i class="fas fa-crown" style="color:#fbbf24;"></i> Admin Access</h2>
-      <p>Enter the admin password to create, edit, or delete posts</p>
-      <input type="password" id="adminPasswordInput" placeholder="Enter admin password" autofocus>
-      <button class="btn btn-gold" id="adminUnlockBtn"><i class="fas fa-key"></i> Unlock Admin</button>
-      <div id="adminWrongPass" class="admin-wrong-pass"></div>
-    </div>
+
+<!-- ============================================= -->
+<!-- AUTH MODAL                                     -->
+<!-- ============================================= -->
+<div id="authModal">
+  <div class="auth-card">
+    <h2 id="authTitle"><i class="fas fa-user"></i> Login</h2>
+    <input type="text" id="authUsername" placeholder="Username">
+    <input type="email" id="authEmail" placeholder="Email (for signup)">
+    <input type="password" id="authPassword" placeholder="Password">
+    <button class="btn btn-primary" id="authSubmitBtn"><i class="fas fa-sign-in-alt"></i> Login</button>
+    <div class="switch-link" id="authSwitch">Don't have an account? Sign up</div>
+    <div id="authError" class="auth-error"></div>
   </div>
+</div>
 
-  <!-- SETTINGS MODAL -->
-  <div id="settingsModal">
-    <div class="settings-modal-card">
-      <button class="close-btn" id="closeSettingsModal"><i class="fas fa-times"></i></button>
-      <h3><i class="fas fa-palette"></i> Choose Theme</h3>
-      <p style="opacity:0.6;font-size:0.85rem;margin-bottom:1rem;">Select your preferred color theme</p>
-      <div class="settings-theme-grid" id="settingsThemeGrid">
-        <div class="settings-theme-option active" data-theme="dark">
-          <div class="theme-preview" style="background:#0b0d10;"></div>
-          <span class="theme-name">Dark</span>
-        </div>
-        <div class="settings-theme-option" data-theme="light">
-          <div class="theme-preview" style="background:#f5f7fa;border-color:#d1d5db;"></div>
-          <span class="theme-name">Light</span>
-        </div>
-        <div class="settings-theme-option" data-theme="blue">
-          <div class="theme-preview" style="background:linear-gradient(145deg,#0a1f2e,#0b2b3f);"></div>
-          <span class="theme-name">Blue</span>
-        </div>
-        <div class="settings-theme-option" data-theme="green">
-          <div class="theme-preview" style="background:linear-gradient(145deg,#0f2a1a,#143f25);"></div>
-          <span class="theme-name">Green</span>
-        </div>
-        <div class="settings-theme-option" data-theme="rose">
-          <div class="theme-preview" style="background:linear-gradient(145deg,#2f1a2b,#4a243d);"></div>
-          <span class="theme-name">Rose</span>
-        </div>
-        <div class="settings-theme-option" data-theme="amber">
-          <div class="theme-preview" style="background:linear-gradient(145deg,#2f2413,#4d3a1a);"></div>
-          <span class="theme-name">Amber</span>
-        </div>
-      </div>
-    </div>
+<!-- ============================================= -->
+<!-- QR MODAL                                       -->
+<!-- ============================================= -->
+<div id="qrModal">
+  <div class="qr-card">
+    <button class="close-btn" id="closeQRModal"><i class="fas fa-times"></i></button>
+    <h3><i class="fas fa-qrcode"></i> QR Code</h3>
+    <div id="qrContainer"></div>
+    <p style="font-size:0.8rem;opacity:0.6;margin-top:0.5rem;" id="qrLabel">Scan to view this</p>
+    <button class="btn btn-outline" id="downloadQRBtn"><i class="fas fa-download"></i> Download</button>
   </div>
+</div>
 
-  <!-- MAIN APP -->
-  <div class="app-container" id="appContainer">
-    <div class="top-bar">
-      <div class="logo"><i class="fas fa-folder-open"></i> Secret<span style="font-weight:400;">Files</span></div>
-      <div class="toolbar-actions">
-        <span id="userRoleBadge" class="admin-badge" style="display:none;"><i class="fas fa-crown"></i> Admin</span>
-        <span id="syncStatus" class="status-badge"><i class="fas fa-sync fa-spin"></i> Connecting</span>
-        <button class="btn btn-outline" id="settingsBtn"><i class="fas fa-gear"></i></button>
-        <button class="btn btn-gold" id="adminBtn"><i class="fas fa-crown"></i> Admin</button>
-        <button class="btn btn-outline" id="lockAdminBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+<!-- ============================================= -->
+<!-- SETTINGS MODAL                                 -->
+<!-- ============================================= -->
+<div id="settingsModal">
+  <div class="settings-card">
+    <button class="close-btn" id="closeSettingsModal"><i class="fas fa-times"></i></button>
+    <h3><i class="fas fa-palette"></i> Choose Theme</h3>
+    <div class="settings-theme-grid" id="settingsThemeGrid">
+      <div class="settings-theme-option active" data-theme="dark">
+        <div class="theme-preview" style="background:#0b0d10;"></div>
+        <span class="theme-name">Dark</span>
       </div>
-    </div>
-
-    <!-- Create Post (hidden by default) -->
-    <div id="createPostArea" class="create-post-area" style="display: none;">
-      <h4 style="margin-bottom:0.5rem;"><i class="fas fa-pen-fancy"></i> New Secret Post</h4>
-      
-      <textarea id="postContentInput" placeholder="Write your message here..."></textarea>
-      
-      <div class="post-options-grid" id="postOptionsGrid">
-        <button class="post-option-btn active" data-type="text">
-          <i class="fas fa-font"></i> Text
-        </button>
-        <button class="post-option-btn" data-type="image">
-          <i class="fas fa-image"></i> Image
-        </button>
-        <button class="post-option-btn" data-type="gif">
-          <i class="fas fa-film"></i> GIF
-        </button>
-        <button class="post-option-btn" data-type="spotify">
-          <i class="fab fa-spotify"></i> Spotify
-        </button>
-        <button class="post-option-btn" data-type="text-image">
-          <i class="fas fa-font"></i>+<i class="fas fa-image"></i> Text+Img
-        </button>
-        <button class="post-option-btn" data-type="text-gif">
-          <i class="fas fa-font"></i>+<i class="fas fa-film"></i> Text+GIF
-        </button>
-        <button class="post-option-btn" data-type="text-spotify">
-          <i class="fas fa-font"></i>+<i class="fab fa-spotify"></i> Text+Spotify
-        </button>
+      <div class="settings-theme-option" data-theme="light">
+        <div class="theme-preview" style="background:#f5f7fa;border-color:#d1d5db;"></div>
+        <span class="theme-name">Light</span>
       </div>
-      
-      <!-- File Upload -->
-      <div class="file-input-wrapper" id="fileUploadWrapper" style="display:none;">
-        <label class="file-label" for="fileInput">
-          <i class="fas fa-upload"></i> Choose File
-        </label>
-        <input type="file" id="fileInput" accept="image/*,.gif">
-        <br>
-        <img id="filePreview" class="file-preview" alt="Preview">
+      <div class="settings-theme-option" data-theme="blue">
+        <div class="theme-preview" style="background:linear-gradient(145deg,#0a1f2e,#0b2b3f);"></div>
+        <span class="theme-name">Blue</span>
       </div>
-      
-      <!-- Spotify Input -->
-      <div class="spotify-input-wrapper" id="spotifyWrapper" style="display:none;">
-        <i class="fab fa-spotify" style="color:#1DB954;"></i>
-        <input type="text" id="spotifyInput" placeholder="Paste Spotify URL (track, playlist, episode)">
+      <div class="settings-theme-option" data-theme="green">
+        <div class="theme-preview" style="background:linear-gradient(145deg,#0f2a1a,#143f25);"></div>
+        <span class="theme-name">Green</span>
       </div>
-      
-      <div class="media-hint"><i class="fas fa-info-circle"></i> Select a post type above and add your content</div>
-      
-      <div class="create-actions">
-        <button class="btn btn-primary" id="createPostBtn"><i class="fas fa-plus-circle"></i> Create Post</button>
-        <button class="btn btn-outline" id="clearPostBtn"><i class="fas fa-times"></i> Clear</button>
+      <div class="settings-theme-option" data-theme="rose">
+        <div class="theme-preview" style="background:linear-gradient(145deg,#2f1a2b,#4a243d);"></div>
+        <span class="theme-name">Rose</span>
       </div>
-    </div>
-
-    <!-- Posts feed -->
-    <div class="posts-section" id="postsFeed">
-      <div style="text-align:center;padding:2rem;opacity:0.5;">
-        <div class="loading-spinner"></div>
-        <p style="margin-top:0.5rem;">Loading posts from Supabase...</p>
+      <div class="settings-theme-option" data-theme="amber">
+        <div class="theme-preview" style="background:linear-gradient(145deg,#2f2413,#4d3a1a);"></div>
+        <span class="theme-name">Amber</span>
       </div>
     </div>
   </div>
+</div>
 
-  <script>
-    (function() {
-      // ---------- CONFIG ----------
-      const ADMIN_PASSWORD = 'secret2026';
-      let isAdmin = false;
-      let posts = [];
-      let selectedPostType = 'text';
-      let uploadedFile = null;
-      let uploadedFileDataURL = null;
+<!-- ============================================= -->
+<!-- PROFILE MODAL                                  -->
+<!-- ============================================= -->
+<div id="profileModal">
+  <div class="profile-card">
+    <button class="close-btn" id="closeProfileModal"><i class="fas fa-times"></i></button>
+    <div id="profileContent">
+      <img id="profileAvatar" class="profile-avatar" src="" alt="Avatar">
+      <div class="profile-username" id="profileUsername">Username</div>
+      <div class="profile-bio" id="profileBio">Bio goes here</div>
+      <div class="profile-stats">
+        <div class="profile-stat" onclick="filterByUser(currentProfileUserId)">
+          <div class="profile-stat-number" id="profilePostCount">0</div>
+          <div class="profile-stat-label">Posts</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-number" id="profileFollowersCount">0</div>
+          <div class="profile-stat-label">Followers</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-number" id="profileFollowingCount">0</div>
+          <div class="profile-stat-label">Following</div>
+        </div>
+      </div>
+      <div id="profileFollowBtn"></div>
+      <div class="profile-actions" style="margin-top:0.5rem;">
+        <button class="btn btn-outline" id="profileQRBtn"><i class="fas fa-qrcode"></i> QR</button>
+        <button class="btn btn-outline" id="profileEditBtn" style="display:none;"><i class="fas fa-edit"></i> Edit</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-      // Supabase Config
-      const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcmZoamJlaGloZWhiYWRvYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNzgyNTEsImV4cCI6MjA5ODg1NDI1MX0.j541e7W56nVCESK_nsVUsGjAv2mOHGb27wwACJZKlBE';
+<!-- ============================================= -->
+<!-- MAIN APP                                       -->
+<!-- ============================================= -->
+<div class="app-container">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="logo"><i class="fas fa-folder-open"></i> Secret<span style="font-weight:400;">Social</span></div>
+    <div class="user-info">
+      <span id="syncStatus" style="font-size:0.7rem;opacity:0.5;"></span>
+      <button class="btn btn-outline" id="settingsBtn"><i class="fas fa-gear"></i></button>
+      <div id="userDisplay" style="display:none;align-items:center;gap:0.5rem;cursor:pointer;">
+        <img id="userAvatarDisplay" class="user-avatar" src="" alt="Avatar">
+        <span id="userNameDisplay" style="font-weight:600;font-size:0.9rem;"></span>
+      </div>
+      <button class="btn btn-gold" id="authBtn"><i class="fas fa-user"></i> Login</button>
+      <button class="btn btn-outline" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
 
-      // Initialize Supabase
-      let supabase;
-      try {
-        if (typeof supabase !== 'undefined') {
-          supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } else if (typeof window.supabase !== 'undefined') {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } else {
-          throw new Error('Supabase SDK not loaded.');
-        }
-        console.log('✅ Supabase initialized');
-      } catch (error) {
-        console.error('❌ Supabase init error:', error);
-      }
+  <!-- Feed Navigation -->
+  <div class="feed-nav" id="feedNav">
+    <button class="feed-nav-btn active" data-filter="following"><i class="fas fa-rss"></i> Following</button>
+    <button class="feed-nav-btn" data-filter="global"><i class="fas fa-globe"></i> Global</button>
+    <button class="feed-nav-btn" data-filter="my"><i class="fas fa-user"></i> My Posts</button>
+  </div>
 
-      // DOM refs
-      const adminModal = document.getElementById('adminModal');
-      const closeAdminModal = document.getElementById('closeAdminModal');
-      const adminPasswordInput = document.getElementById('adminPasswordInput');
-      const adminUnlockBtn = document.getElementById('adminUnlockBtn');
-      const adminWrongPass = document.getElementById('adminWrongPass');
-      const adminBtn = document.getElementById('adminBtn');
-      const lockAdminBtn = document.getElementById('lockAdminBtn');
-      const userRoleBadge = document.getElementById('userRoleBadge');
+  <!-- Suggestions (who to follow) -->
+  <div id="suggestionsBox" class="suggestions-box" style="display:none;">
+    <h4><i class="fas fa-users"></i> Who to follow</h4>
+    <div id="suggestionsList"></div>
+  </div>
+
+  <!-- Create Post -->
+  <div id="createPostArea" class="create-post-area">
+    <h4 style="margin-bottom:0.5rem;"><i class="fas fa-pen-fancy"></i> Create Post</h4>
+    <input type="text" id="postTitleInput" placeholder="Post title..." style="width:100%;padding:0.6rem 1rem;border-radius:16px;border:none;background:rgba(0,0,0,0.2);color:inherit;margin-bottom:0.5rem;outline:1px solid rgba(255,255,255,0.05);">
+    
+    <div id="quillEditor"></div>
+    
+    <div class="post-options-grid">
+      <button class="post-option-btn active" data-type="text"><i class="fas fa-font"></i> Text</button>
+      <button class="post-option-btn" data-type="image"><i class="fas fa-image"></i> Image</button>
+      <button class="post-option-btn" data-type="gif"><i class="fas fa-film"></i> GIF</button>
+      <button class="post-option-btn" data-type="spotify"><i class="fab fa-spotify"></i> Spotify</button>
+      <button class="post-option-btn" data-type="pinned"><i class="fas fa-thumbtack"></i> Pin</button>
+    </div>
+    
+    <div class="file-input-wrapper" id="fileUploadWrapper" style="display:none;">
+      <label class="btn btn-outline" for="fileInput"><i class="fas fa-upload"></i> Choose File</label>
+      <input type="file" id="fileInput" accept="image/*,.gif">
+      <img id="filePreview" class="file-preview" alt="Preview">
+    </div>
+    
+    <div class="spotify-input-wrapper" id="spotifyWrapper" style="display:none;">
+      <i class="fab fa-spotify" style="color:#1DB954;"></i>
+      <input type="text" id="spotifyInput" placeholder="Paste Spotify URL">
+    </div>
+    
+    <div class="create-actions">
+      <button class="btn btn-primary" id="createPostBtn"><i class="fas fa-plus-circle"></i> Publish</button>
+      <button class="btn btn-outline" id="clearPostBtn"><i class="fas fa-times"></i> Clear</button>
+    </div>
+  </div>
+
+  <!-- Posts Feed -->
+  <div class="posts-section" id="postsFeed">
+    <div class="empty-state">
+      <div class="loading-spinner"></div>
+      <p>Loading posts...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// COMPLETE JAVASCRIPT - FACEBOOK STYLE SOCIAL NETWORK
+// =============================================
+
+// ---------- CONFIG ----------
+const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcmZoamJlaGloZWhiYWRvYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNzgyNTEsImV4cCI6MjA5ODg1NDI1MX0.j541e7W56nVCESK_nsVUsGjAv2mOHGb27wwACJZKlBE';
+
+let supabase;
+try {
+  if (typeof window.supabase !== 'undefined') {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } else {
+    supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+} catch(e) { console.error('Supabase init error:', e); }
+
+// ---------- STATE ----------
+let currentUser = null;
+let allPosts = [];
+let currentFilter = 'following';
+let currentProfileUserId = null;
+let selectedPostType = 'text';
+let uploadedFileDataURL = null;
+let editingPostId = null;
+let quill = null;
+let qrCodeInstance = null;
+let currentQRData = null;
+let allUsers = [];
+
+// ---------- DOM REFS ----------
+const authModal = document.getElementById('authModal');
+const authTitle = document.getElementById('authTitle');
+const authUsername = document.getElementById('authUsername');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const authSwitch = document.getElementById('authSwitch');
+const authError = document.getElementById('authError');
+const authBtn = document.getElementById('authBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const userDisplay = document.getElementById('userDisplay');
+const userAvatarDisplay = document.getElementById('userAvatarDisplay');
+const userNameDisplay = document.getElementById('userNameDisplay');
+
+const createArea = document.getElementById('createPostArea');
+const postTitleInput = document.getElementById('postTitleInput');
+const createBtn = document.getElementById('createPostBtn');
+const clearBtn = document.getElementById('clearPostBtn');
+const fileInput = document.getElementById('fileInput');
+const filePreview = document.getElementById('filePreview');
+const fileUploadWrapper = document.getElementById('fileUploadWrapper');
+const spotifyWrapper = document.getElementById('spotifyWrapper');
+const spotifyInput = document.getElementById('spotifyInput');
+const postOptionBtns = document.querySelectorAll('.post-option-btn');
+const postsFeed = document.getElementById('postsFeed');
+const feedNav = document.getElementById('feedNav');
+const feedNavBtns = document.querySelectorAll('.feed-nav-btn');
+
+const settingsModal = document.getElementById('settingsModal');
+const settingsBtn = document.getElementById('settingsBtn');
+const closeSettingsModal = document.getElementById('closeSettingsModal');
+const settingsThemeGrid = document.getElementById('settingsThemeGrid');
+
+const qrModal = document.getElementById('qrModal');
+const qrContainer = document.getElementById('qrContainer');
+const qrLabel = document.getElementById('qrLabel');
+const closeQRModal = document.getElementById('closeQRModal');
+const downloadQRBtn = document.getElementById('downloadQRBtn');
+
+const profileModal = document.getElementById('profileModal');
+const closeProfileModal = document.getElementById('closeProfileModal');
+const profileAvatar = document.getElementById('profileAvatar');
+const profileUsername = document.getElementById('profileUsername');
+const profileBio = document.getElementById('profileBio');
+const profilePostCount = document.getElementById('profilePostCount');
+const profileFollowersCount = document.getElementById('profileFollowersCount');
+const profileFollowingCount = document.getElementById('profileFollowingCount');
+const profileFollowBtn = document.getElementById('profileFollowBtn');
+const profileQRBtn = document.getElementById('profileQRBtn');
+const profileEditBtn = document.getElementById('profileEditBtn');
+const syncStatus = document.getElementById('syncStatus');
+const suggestionsBox = document.getElementById('suggestionsBox');
+const suggestionsList = document.getElementById('suggestionsList');
+
+// ---------- QUILL EDITOR ----------
+function initQuill() {
+  if (quill) return;
+  quill = new Quill('#quillEditor', {
+    theme: 'snow',
+    placeholder: "What's on your mind?",
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'color': [] }, { 'background': [] }],
+        ['link', 'image', 'video'],
+        ['clean']
+      ]
+    }
+  });
+}
+initQuill();
+
+// ---------- AUTH ----------
+let isLoginMode = true;
+
+authSwitch.addEventListener('click', () => {
+  isLoginMode = !isLoginMode;
+  authTitle.innerHTML = isLoginMode ? '<i class="fas fa-user"></i> Login' : '<i class="fas fa-user-plus"></i> Sign Up';
+  authSubmitBtn.innerHTML = isLoginMode ? '<i class="fas fa-sign-in-alt"></i> Login' : '<i class="fas fa-user-plus"></i> Sign Up';
+  authSwitch.textContent = isLoginMode ? "Don't have an account? Sign up" : "Already have an account? Login";
+  authEmail.style.display = isLoginMode ? 'none' : 'block';
+  authError.textContent = '';
+});
+
+authSubmitBtn.addEventListener('click', async () => {
+  const username = authUsername.value.trim();
+  const email = isLoginMode ? '' : authEmail.value.trim();
+  const password = authPassword.value;
+  
+  if (!username || !password) { authError.textContent = 'Please fill in all fields.'; return; }
+  if (!isLoginMode && !email) { authError.textContent = 'Email is required for signup.'; return; }
+  
+  authError.textContent = '';
+  
+  try {
+    if (isLoginMode) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .eq('password_hash', password)
+        .single();
       
-      const settingsModal = document.getElementById('settingsModal');
-      const closeSettingsModal = document.getElementById('closeSettingsModal');
-      const settingsBtn = document.getElementById('settingsBtn');
-      const settingsThemeGrid = document.getElementById('settingsThemeGrid');
+      if (error || !data) { throw new Error('Invalid username or password'); }
       
-      const postsFeed = document.getElementById('postsFeed');
-      const createArea = document.getElementById('createPostArea');
-      const contentInput = document.getElementById('postContentInput');
-      const createBtn = document.getElementById('createPostBtn');
-      const clearBtn = document.getElementById('clearPostBtn');
-      const syncStatus = document.getElementById('syncStatus');
+      currentUser = data;
+      localStorage.setItem('currentUser', JSON.stringify(data));
+      hideAuthModal();
+      updateUI();
+      await loadAllData();
+    } else {
+      const { data: existing } = await supabase
+        .from('users')
+        .select('id')
+        .eq('username', username)
+        .maybeSingle();
       
-      const fileInput = document.getElementById('fileInput');
-      const filePreview = document.getElementById('filePreview');
-      const fileUploadWrapper = document.getElementById('fileUploadWrapper');
-      const spotifyWrapper = document.getElementById('spotifyWrapper');
-      const spotifyInput = document.getElementById('spotifyInput');
-      const postOptionBtns = document.querySelectorAll('.post-option-btn');
+      if (existing) { throw new Error('Username already taken'); }
+      
+      const { data, error } = await supabase
+        .from('users')
+        .insert([{
+          username: username,
+          email: email,
+          password_hash: password,
+          avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=3b82f6&color=fff&size=128`
+        }])
+        .select()
+        .single();
+      
+      if (error) throw new Error(error.message);
+      
+      currentUser = data;
+      localStorage.setItem('currentUser', JSON.stringify(data));
+      hideAuthModal();
+      updateUI();
+      await loadAllData();
+    }
+  } catch (error) {
+    authError.textContent = error.message || 'Authentication failed';
+  }
+});
 
-      // ---------- SETTINGS MODAL ----------
-      function showSettingsModal() {
-        settingsModal.classList.add('show');
-        // Update active theme in settings
-        const currentTheme = document.body.className || 'dark';
-        document.querySelectorAll('.settings-theme-option').forEach(el => {
-          el.classList.toggle('active', el.dataset.theme === currentTheme);
-        });
-      }
+authBtn.addEventListener('click', showAuthModal);
+logoutBtn.addEventListener('click', logout);
 
-      function hideSettingsModal() {
-        settingsModal.classList.remove('show');
-      }
+function showAuthModal() {
+  authModal.classList.add('show');
+  authUsername.value = '';
+  authPassword.value = '';
+  authEmail.value = '';
+  authError.textContent = '';
+  setTimeout(() => authUsername.focus(), 100);
+}
 
-      closeSettingsModal.addEventListener('click', hideSettingsModal);
-      settingsModal.addEventListener('click', function(e) {
-        if (e.target === this) hideSettingsModal();
-      });
+function hideAuthModal() {
+  authModal.classList.remove('show');
+}
 
-      settingsBtn.addEventListener('click', showSettingsModal);
+authModal.addEventListener('click', (e) => {
+  if (e.target === authModal) hideAuthModal();
+});
 
-      // Theme selection in settings
-      settingsThemeGrid.querySelectorAll('.settings-theme-option').forEach(option => {
-        option.addEventListener('click', function() {
-          const theme = this.dataset.theme;
-          document.body.className = theme;
-          settingsThemeGrid.querySelectorAll('.settings-theme-option').forEach(el => {
-            el.classList.remove('active');
-          });
-          this.classList.add('active');
-          localStorage.setItem('selected_theme', theme);
-        });
-      });
+authUsername.addEventListener('keydown', (e) => { if (e.key === 'Enter') authSubmitBtn.click(); });
+authPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') authSubmitBtn.click(); });
 
-      // ---------- ADMIN MODAL ----------
-      function showAdminModal() {
-        adminModal.classList.add('show');
-        adminPasswordInput.value = '';
-        adminWrongPass.textContent = '';
-        setTimeout(() => adminPasswordInput.focus(), 100);
-      }
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('currentUser');
+  updateUI();
+  allPosts = [];
+  renderPosts();
+}
 
-      function hideAdminModal() {
-        adminModal.classList.remove('show');
-        adminPasswordInput.value = '';
-        adminWrongPass.textContent = '';
-      }
+function updateUI() {
+  if (currentUser) {
+    authBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-flex';
+    userDisplay.style.display = 'flex';
+    userAvatarDisplay.src = currentUser.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=3b82f6&color=fff&size=128`;
+    userNameDisplay.textContent = currentUser.username;
+    createArea.classList.add('show');
+  } else {
+    authBtn.style.display = 'inline-flex';
+    logoutBtn.style.display = 'none';
+    userDisplay.style.display = 'none';
+    createArea.classList.remove('show');
+  }
+}
 
-      closeAdminModal.addEventListener('click', hideAdminModal);
-      adminModal.addEventListener('click', function(e) {
-        if (e.target === this) hideAdminModal();
-      });
+// ---------- LOAD ALL DATA ----------
+async function loadAllData() {
+  await loadUsers();
+  await loadPosts();
+  await loadSuggestions();
+}
 
-      adminUnlockBtn.addEventListener('click', function() {
-        const password = adminPasswordInput.value;
-        if (password === ADMIN_PASSWORD) {
-          isAdmin = true;
-          hideAdminModal();
-          createArea.style.display = 'block';
-          adminBtn.style.display = 'none';
-          lockAdminBtn.style.display = 'inline-flex';
-          userRoleBadge.style.display = 'inline-block';
-          loadPosts();
-        } else {
-          adminWrongPass.textContent = '❌ Wrong admin password!';
-          adminPasswordInput.value = '';
-          adminPasswordInput.focus();
+async function loadUsers() {
+  try {
+    const { data, error } = await supabase.from('users').select('*');
+    if (error) throw error;
+    allUsers = data || [];
+  } catch (error) {
+    console.error('Error loading users:', error);
+  }
+}
+
+// ---------- LOAD POSTS ----------
+async function loadPosts() {
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(`
+        *,
+        users!posts_author_id_fkey (id, username, avatar_url)
+      `)
+      .order('is_pinned', { ascending: false })
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    allPosts = data || [];
+    
+    // Filter based on current feed
+    filterPosts();
+    updateSyncStatus('Synced');
+  } catch (error) {
+    console.error('Error loading posts:', error);
+    updateSyncStatus('Error');
+    allPosts = [];
+    renderPosts();
+  }
+}
+
+// ---------- FILTER POSTS ----------
+function filterPosts() {
+  let filtered = [...allPosts];
+  
+  if (currentFilter === 'my' && currentUser) {
+    filtered = filtered.filter(p => p.author_id === currentUser.id);
+  } else if (currentFilter === 'following' && currentUser) {
+    // Get followed users
+    supabase.from('followers')
+      .select('following_id')
+      .eq('follower_id', currentUser.id)
+      .then(({ data }) => {
+        const followingIds = data?.map(f => f.following_id) || [];
+        // If not following anyone, show all posts (global)
+        if (followingIds.length === 0) {
+          renderFilteredPosts(filtered);
+          return;
         }
+        // Show posts from following + own posts
+        const filteredPosts = filtered.filter(p => 
+          followingIds.includes(p.author_id) || p.author_id === currentUser.id
+        );
+        renderFilteredPosts(filteredPosts);
       });
+    return;
+  }
+  
+  renderFilteredPosts(filtered);
+}
 
-      adminPasswordInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') adminUnlockBtn.click();
-      });
+function renderFilteredPosts(posts) {
+  // Sort: pinned first, then by date
+  posts.sort((a, b) => {
+    if (a.is_pinned && !b.is_pinned) return -1;
+    if (!a.is_pinned && b.is_pinned) return 1;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+  renderPosts(posts);
+}
 
-      adminBtn.addEventListener('click', showAdminModal);
+// ---------- FEED NAV ----------
+feedNavBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    feedNavBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentFilter = this.dataset.filter;
+    filterPosts();
+  });
+});
 
-      lockAdminBtn.addEventListener('click', function() {
-        isAdmin = false;
-        createArea.style.display = 'none';
-        adminBtn.style.display = 'inline-flex';
-        lockAdminBtn.style.display = 'none';
-        userRoleBadge.style.display = 'none';
-        renderPosts();
-      });
-
-      // ---------- POST TYPE SELECTION ----------
-      postOptionBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-          postOptionBtns.forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
-          selectedPostType = this.dataset.type;
-          updatePostTypeUI(selectedPostType);
-        });
-      });
-
-      function updatePostTypeUI(type) {
-        fileUploadWrapper.style.display = 'none';
-        spotifyWrapper.style.display = 'none';
-        filePreview.classList.remove('show');
-        uploadedFile = null;
-        uploadedFileDataURL = null;
-        
-        if (type === 'image' || type === 'text-image') {
-          fileUploadWrapper.style.display = 'block';
-          fileInput.accept = 'image/*';
-        } else if (type === 'gif' || type === 'text-gif') {
-          fileUploadWrapper.style.display = 'block';
-          fileInput.accept = 'image/gif';
-        } else if (type === 'spotify' || type === 'text-spotify') {
-          spotifyWrapper.style.display = 'flex';
-        }
-        
-        const hasText = ['text', 'text-image', 'text-gif', 'text-spotify'].includes(type);
-        contentInput.style.display = hasText ? 'block' : 'none';
-        if (!hasText) contentInput.value = '';
-      }
-
-      // File upload
-      fileInput.addEventListener('change', function(e) {
-        const file = this.files[0];
-        if (file) {
-          uploadedFile = file;
-          const reader = new FileReader();
-          reader.onload = function(event) {
-            uploadedFileDataURL = event.target.result;
-            filePreview.src = event.target.result;
-            filePreview.classList.add('show');
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-
-      clearBtn.addEventListener('click', function() {
-        contentInput.value = '';
-        fileInput.value = '';
-        filePreview.classList.remove('show');
-        uploadedFile = null;
-        uploadedFileDataURL = null;
-        spotifyInput.value = '';
-      });
-
-      // ---------- HELPER FUNCTIONS ----------
-      function updateStatus(status) {
-        if (!syncStatus) return;
-        const icon = status === 'Loading' ? 'fa-sync fa-spin' :
-                    status === 'Saving' ? 'fa-upload fa-spin' :
-                    status === 'Synced' ? 'fa-check-circle' :
-                    status === 'Error' ? 'fa-exclamation-circle' :
-                    status === 'Offline' ? 'fa-wifi' : 'fa-sync';
-        const className = status === 'Synced' ? 'synced' :
-                         status === 'Error' ? 'error' :
-                         status === 'Offline' ? 'offline' : '';
-        syncStatus.className = `status-badge ${className}`;
-        syncStatus.innerHTML = `<i class="fas ${icon}"></i> ${status}`;
-      }
-
-      // ---------- SUPABASE CRUD ----------
-      async function fetchPosts() {
-        try {
-          updateStatus('Loading');
-          if (!supabase) throw new Error('Supabase not initialized');
-          
-          const { data, error } = await supabase
-            .from('posts')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-          if (error) throw error;
-          
-          posts = data || [];
-          updateStatus('Synced');
-          localStorage.setItem('secret_posts_backup', JSON.stringify(posts));
-          return posts;
-        } catch (error) {
-          console.error('Error fetching posts:', error);
-          updateStatus('Error');
-          const localData = localStorage.getItem('secret_posts_backup');
-          if (localData) {
-            posts = JSON.parse(localData);
-            updateStatus('Offline');
-            return posts;
-          }
-          return [];
-        }
-      }
-
-      async function createPost(content, mediaData, mediaType) {
-        try {
-          updateStatus('Saving');
-          if (!supabase) throw new Error('Supabase not initialized');
-          
-          const postData = {
-            content: content || '',
-            timestamp: new Date().toISOString(),
-            media_data: mediaData || '',
-            media_type: mediaType || 'text'
-          };
-          
-          const { data, error } = await supabase
-            .from('posts')
-            .insert([postData])
-            .select();
-
-          if (error) throw error;
-          
-          updateStatus('Synced');
-          return data[0];
-        } catch (error) {
-          console.error('Error creating post:', error);
-          updateStatus('Error');
-          alert(`⚠️ Could not save: ${error.message}`);
-          return null;
-        }
-      }
-
-      async function updatePost(id, content, mediaData, mediaType) {
-        try {
-          updateStatus('Saving');
-          if (!supabase) throw new Error('Supabase not initialized');
-          
-          const updateData = {
-            content: content || '',
-            timestamp: new Date().toISOString(),
-            media_data: mediaData || '',
-            media_type: mediaType || 'text'
-          };
-          
-          const { data, error } = await supabase
-            .from('posts')
-            .update(updateData)
-            .eq('id', id)
-            .select();
-
-          if (error) throw error;
-          
-          updateStatus('Synced');
-          return data[0];
-        } catch (error) {
-          console.error('Error updating post:', error);
-          updateStatus('Error');
-          alert(`⚠️ Could not update: ${error.message}`);
-          return null;
-        }
-      }
-
-      async function deletePost(id) {
-        try {
-          updateStatus('Saving');
-          if (!supabase) throw new Error('Supabase not initialized');
-          
-          const { error } = await supabase
-            .from('posts')
-            .delete()
-            .eq('id', id);
-
-          if (error) throw error;
-          
-          updateStatus('Synced');
-          return true;
-        } catch (error) {
-          console.error('Error deleting post:', error);
-          updateStatus('Error');
-          alert(`⚠️ Could not delete: ${error.message}`);
-          return false;
-        }
-      }
-
-      // ---------- FORMAT CONTENT ----------
-      function formatPost(post) {
-        let html = '';
-        
-        if (post.content) {
-          html += `<div>${post.content.replace(/\n/g, '<br>')}</div>`;
-        }
-        
-        if (post.media_data) {
-          const mediaType = post.media_type || '';
-          
-          if (mediaType.includes('image') || mediaType === 'image') {
-            html += `<div class="post-media"><img src="${post.media_data}" alt="Image" loading="lazy"></div>`;
-          } else if (mediaType.includes('gif') || mediaType === 'gif') {
-            html += `<div class="post-media"><img src="${post.media_data}" alt="GIF" loading="lazy"></div>`;
-          } else if (mediaType.includes('spotify') || mediaType === 'spotify') {
-            const match = post.media_data.match(/spotify\.com\/(track|playlist|episode)\/([a-zA-Z0-9]+)/);
-            if (match) {
-              html += `<div class="post-media"><iframe src="https://open.spotify.com/embed/${match[1]}/${match[2]}" allow="encrypted-media"></iframe></div>`;
-            }
-          }
-        }
-        
-        return html || 'Empty post';
-      }
-
-      // ---------- RENDER ----------
-      function renderPosts() {
-        if (!postsFeed) return;
-        
-        if (posts.length === 0) {
-          postsFeed.innerHTML = `
-            <div style="text-align:center;padding:2rem;opacity:0.5;">
-              <i class="fas fa-inbox fa-2x"></i>
-              <p style="margin-top:0.5rem;">No secrets yet.</p>
+// ---------- RENDER POSTS ----------
+function renderPosts(postsToRender = null) {
+  const posts = postsToRender || allPosts;
+  
+  if (!postsFeed) return;
+  
+  if (posts.length === 0) {
+    postsFeed.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>${currentFilter === 'my' ? "You haven't posted anything yet." : 
+            currentFilter === 'following' ? "No posts from people you follow. Try the Global feed!" :
+            "No posts yet. Be the first to create one!"}</p>
+      </div>
+    `;
+    return;
+  }
+  
+  let html = '';
+  for (const post of posts) {
+    const isAuthor = currentUser && post.author_id === currentUser.id;
+    const authorName = post.users?.username || 'Unknown';
+    const authorAvatar = post.users?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=3b82f6&color=fff&size=64`;
+    
+    html += `
+      <div class="post-item ${post.is_pinned ? 'pinned' : ''}" id="post-${post.id}">
+        <div class="post-header">
+          <div>
+            <div class="post-author" onclick="showProfile(${post.author_id})">
+              <img class="post-author-avatar" src="${authorAvatar}" alt="${authorName}">
+              <span class="post-author-name">${authorName}</span>
+              ${post.is_pinned ? '<span class="pinned-badge"><i class="fas fa-thumbtack"></i> Pinned</span>' : ''}
             </div>
-          `;
-          return;
-        }
-
-        let html = '';
-        posts.forEach((post, index) => {
-          const postContent = formatPost(post);
-          const postId = post.id;
-          
-          html += `
-            <div class="post-item" data-id="${postId}">
-              <div class="post-header">
-                <span style="opacity:0.6;font-size:0.8rem;">
-                  <i class="far fa-file-alt"></i> #${index+1}
-                  ${post.media_type ? `<span class="post-type-badge"><i class="fas fa-${post.media_type.includes('image') ? 'image' : post.media_type.includes('gif') ? 'film' : post.media_type.includes('spotify') ? 'music' : 'font'}"></i> ${post.media_type}</span>` : ''}
-                </span>
-                <span style="font-size:0.7rem;opacity:0.4;">
-                  ${new Date(post.timestamp).toLocaleString()}
-                </span>
-              </div>
-              <div class="post-content">${postContent}</div>
-              ${isAdmin ? `
-                <div class="post-actions">
-                  <button class="btn btn-outline editPostBtn" data-id="${postId}">
-                    <i class="fas fa-edit"></i> Edit
-                  </button>
-                  <button class="btn btn-danger deletePostBtn" data-id="${postId}">
-                    <i class="fas fa-trash"></i> Delete
-                  </button>
-                </div>
-              ` : ''}
-              <div class="post-timestamp">${new Date(post.timestamp).toLocaleDateString()}</div>
+            ${post.title ? `<div class="post-title">${post.title}</div>` : ''}
+          </div>
+          <div class="post-meta">
+            ${new Date(post.created_at).toLocaleString()}
+            ${post.updated_at !== post.created_at ? ' (edited)' : ''}
+          </div>
+        </div>
+        <div class="post-content">${post.content_html}</div>
+        ${post.media_data ? renderMedia(post) : ''}
+        
+        <!-- Reactions -->
+        <div class="post-reactions" id="reactions-${post.id}">
+          ${renderReactionsPlaceholder()}
+        </div>
+        
+        <!-- Comments -->
+        <div class="comments-section" id="comments-${post.id}">
+          <div id="commentsList-${post.id}"></div>
+          ${currentUser ? `
+            <div class="comment-input-wrapper">
+              <input type="text" id="commentInput-${post.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter') addComment(${post.id})">
+              <button class="btn btn-primary btn-sm" onclick="addComment(${post.id})"><i class="fas fa-paper-plane"></i></button>
             </div>
-          `;
-        });
+          ` : ''}
+        </div>
         
-        postsFeed.innerHTML = html;
+        <!-- Actions -->
+        <div class="post-actions">
+          ${isAuthor ? `
+            <button class="btn btn-outline" onclick="editPost(${post.id})"><i class="fas fa-edit"></i> Edit</button>
+            <button class="btn btn-danger" onclick="deletePost(${post.id})"><i class="fas fa-trash"></i> Delete</button>
+          ` : ''}
+          <button class="btn btn-outline" onclick="showQR('post', ${post.id}, '${encodeURIComponent(post.title || 'Post')}')"><i class="fas fa-qrcode"></i> QR</button>
+          <button class="btn btn-outline" onclick="sharePost(${post.id})"><i class="fas fa-share-alt"></i> Share</button>
+          <button class="btn btn-outline" onclick="viewHistory(${post.id})"><i class="fas fa-history"></i> History</button>
+        </div>
+      </div>
+    `;
+  }
+  
+  postsFeed.innerHTML = html;
+  
+  // Load comments and reactions for each post
+  for (const post of posts) {
+    loadComments(post.id);
+    loadReactions(post.id);
+  }
+}
 
-        if (isAdmin) {
-          document.querySelectorAll('.editPostBtn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              const id = parseInt(btn.dataset.id);
-              const post = posts.find(p => p.id === id);
-              if (post) {
-                const newContent = prompt('Edit content:', post.content || '');
-                if (newContent !== null) {
-                  const updated = await updatePost(id, newContent, post.media_data || '', post.media_type || 'text');
-                  if (updated) await loadPosts();
-                }
-              }
-            });
-          });
+function renderMedia(post) {
+  const mediaType = post.media_type || '';
+  const mediaData = post.media_data || '';
+  
+  if (mediaType.includes('image') || mediaType === 'image') {
+    return `<img src="${mediaData}" alt="Image" loading="lazy" style="max-width:100%;border-radius:16px;margin:0.3rem 0;">`;
+  } else if (mediaType.includes('gif') || mediaType === 'gif') {
+    return `<img src="${mediaData}" alt="GIF" loading="lazy" style="max-width:100%;border-radius:16px;margin:0.3rem 0;">`;
+  } else if (mediaType.includes('spotify') || mediaType === 'spotify') {
+    const match = mediaData.match(/spotify\.com\/(track|playlist|episode)\/([a-zA-Z0-9]+)/);
+    if (match) {
+      return `<iframe src="https://open.spotify.com/embed/${match[1]}/${match[2]}" allow="encrypted-media" style="width:100%;height:80px;border-radius:16px;border:none;"></iframe>`;
+    }
+    return `<a href="${mediaData}" target="_blank">${mediaData}</a>`;
+  }
+  return '';
+}
 
-          document.querySelectorAll('.deletePostBtn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              const id = parseInt(btn.dataset.id);
-              if (confirm('Permanently delete this post?')) {
-                const success = await deletePost(id);
-                if (success) await loadPosts();
-              }
-            });
-          });
-        }
-      }
+function renderReactionsPlaceholder() {
+  return '<span style="font-size:0.8rem;opacity:0.5;">Loading reactions...</span>';
+}
 
-      // ---------- CREATE POST ----------
-      async function handleCreatePost() {
-        if (!isAdmin) {
-          showAdminModal();
-          return;
-        }
-        
-        let content = contentInput.value.trim();
-        let mediaData = '';
-        let mediaType = selectedPostType;
-        
-        if (selectedPostType.includes('image') || selectedPostType === 'image') {
-          if (uploadedFileDataURL) {
-            mediaData = uploadedFileDataURL;
-            mediaType = 'image';
-          } else if (selectedPostType === 'image') {
-            alert('Please select an image file.');
-            return;
-          }
-        }
-        
-        if (selectedPostType.includes('gif') || selectedPostType === 'gif') {
-          if (uploadedFileDataURL) {
-            mediaData = uploadedFileDataURL;
-            mediaType = 'gif';
-          } else if (selectedPostType === 'gif') {
-            alert('Please select a GIF file.');
-            return;
-          }
-        }
-        
-        if (selectedPostType.includes('spotify') || selectedPostType === 'spotify') {
-          const spotifyUrl = spotifyInput.value.trim();
-          if (spotifyUrl) {
-            mediaData = spotifyUrl;
-            mediaType = 'spotify';
-          } else if (selectedPostType === 'spotify') {
-            alert('Please enter a Spotify URL.');
-            return;
-          }
-        }
-        
-        if (selectedPostType === 'text' && !content) {
-          alert('Please write some text.');
-          return;
-        }
-        
-        const newPost = await createPost(content, mediaData, mediaType);
-        if (newPost) {
-          await loadPosts();
-          clearBtn.click();
-        }
-      }
+// ---------- REACTIONS ----------
+const REACTION_EMOJIS = {
+  like: '👍',
+  heart: '❤️',
+  funny: '😂',
+  wow: '😮',
+  sad: '😢'
+};
 
-      // ---------- LOAD POSTS ----------
-      async function loadPosts() {
-        await fetchPosts();
-        renderPosts();
-      }
+async function toggleReaction(postId, type) {
+  if (!currentUser) { showAuthModal(); return; }
+  
+  try {
+    const { data: existing } = await supabase
+      .from('post_reactions')
+      .select('id')
+      .eq('post_id', postId)
+      .eq('user_id', currentUser.id)
+      .eq('reaction_type', type)
+      .maybeSingle();
+    
+    if (existing) {
+      await supabase.from('post_reactions').delete().eq('id', existing.id);
+    } else {
+      await supabase.from('post_reactions').insert([{
+        post_id: postId,
+        user_id: currentUser.id,
+        reaction_type: type
+      }]);
+    }
+    
+    loadReactions(postId);
+  } catch (error) {
+    console.error('Error toggling reaction:', error);
+  }
+}
 
-      // ---------- EVENTS ----------
-      createBtn.addEventListener('click', handleCreatePost);
+async function loadReactions(postId) {
+  try {
+    const { data, error } = await supabase
+      .from('post_reactions')
+      .select('reaction_type, user_id')
+      .eq('post_id', postId);
+    
+    if (error) throw error;
+    
+    const container = document.getElementById(`reactions-${postId}`);
+    if (!container) return;
+    
+    const counts = {};
+    data.forEach(r => { counts[r.reaction_type] = (counts[r.reaction_type] || 0) + 1; });
+    
+    const userReactions = data
+      .filter(r => currentUser && r.user_id === currentUser.id)
+      .map(r => r.reaction_type);
+    
+    container.innerHTML = Object.entries(REACTION_EMOJIS).map(([key, emoji]) => `
+      <button class="reaction-btn ${userReactions.includes(key) ? 'active' : ''}" onclick="toggleReaction(${postId}, '${key}')">
+        ${emoji} <span class="reaction-count">${counts[key] || 0}</span>
+      </button>
+    `).join('');
+  } catch (error) {
+    console.error('Error loading reactions:', error);
+  }
+}
 
-      // Restore theme
-      const savedTheme = localStorage.getItem('selected_theme') || 'dark';
-      document.body.className = savedTheme;
+// ---------- COMMENTS ----------
+async function addComment(postId) {
+  if (!currentUser) { showAuthModal(); return; }
+  
+  const input = document.getElementById(`commentInput-${postId}`);
+  const content = input.value.trim();
+  if (!content) return;
+  
+  try {
+    const { error } = await supabase
+      .from('comments')
+      .insert([{
+        post_id: postId,
+        user_id: currentUser.id,
+        content: content
+      }]);
+    
+    if (error) throw error;
+    input.value = '';
+    loadComments(postId);
+  } catch (error) {
+    alert('Error adding comment: ' + error.message);
+  }
+}
 
-      // Block context menu & devtools
-      document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
-          e.preventDefault();
-          return false;
-        }
-        if (e.ctrlKey && e.key === 'p') { e.preventDefault(); return false; }
+async function deleteComment(commentId, postId) {
+  if (!confirm('Delete this comment?')) return;
+  
+  try {
+    await supabase.from('comments').delete().eq('id', commentId);
+    loadComments(postId);
+  } catch (error) {
+    alert('Error deleting comment: ' + error.message);
+  }
+}
+
+async function loadComments(postId) {
+  try {
+    const { data, error } = await supabase
+      .from('comments')
+      .select(`
+        *,
+        users!comments_user_id_fkey (id, username, avatar_url)
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true });
+    
+    if (error) throw error;
+    
+    const container = document.getElementById(`commentsList-${postId}`);
+    if (!container) return;
+    
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="font-size:0.8rem;opacity:0.4;padding:0.5rem 0;">No comments yet</div>';
+      return;
+    }
+    
+    container.innerHTML = data.map(comment => `
+      <div class="comment-item">
+        <img class="comment-avatar" src="${comment.users?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.users?.username || 'User')}&background=3b82f6&color=fff&size=64`}" alt="${comment.users?.username}" onclick="showProfile(${comment.user_id})">
+        <div class="comment-body">
+          <div class="comment-author" onclick="showProfile(${comment.user_id})">${comment.users?.username || 'Unknown'}</div>
+          <div class="comment-text">${comment.content}</div>
+          <div class="comment-time">${new Date(comment.created_at).toLocaleString()}</div>
+          ${currentUser && (comment.user_id === currentUser.id) ? `
+            <div class="comment-actions">
+              <button class="btn btn-danger btn-sm" onclick="deleteComment(${comment.id}, ${postId})"><i class="fas fa-trash"></i></button>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Error loading comments:', error);
+  }
+}
+
+// ---------- FOLLOW/UNFOLLOW ----------
+async function toggleFollow(userId) {
+  if (!currentUser) { showAuthModal(); return; }
+  if (userId === currentUser.id) return;
+  
+  try {
+    const { data: existing } = await supabase
+      .from('followers')
+      .select('id')
+      .eq('follower_id', currentUser.id)
+      .eq('following_id', userId)
+      .maybeSingle();
+    
+    if (existing) {
+      await supabase.from('followers').delete().eq('id', existing.id);
+    } else {
+      await supabase.from('followers').insert([{
+        follower_id: currentUser.id,
+        following_id: userId
+      }]);
+    }
+    
+    // Refresh profile if open
+    if (currentProfileUserId) {
+      await showProfile(currentProfileUserId);
+    }
+    await loadSuggestions();
+    filterPosts();
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+}
+
+async function isFollowing(userId) {
+  if (!currentUser || userId === currentUser.id) return false;
+  try {
+    const { data } = await supabase
+      .from('followers')
+      .select('id')
+      .eq('follower_id', currentUser.id)
+      .eq('following_id', userId)
+      .maybeSingle();
+    return !!data;
+  } catch { return false; }
+}
+
+// ---------- SUGGESTIONS (Who to follow) ----------
+async function loadSuggestions() {
+  if (!currentUser) {
+    suggestionsBox.style.display = 'none';
+    return;
+  }
+  
+  try {
+    // Get users current user is following
+    const { data: following } = await supabase
+      .from('followers')
+      .select('following_id')
+      .eq('follower_id', currentUser.id);
+    
+    const followingIds = following?.map(f => f.following_id) || [];
+    
+    // Suggest users not followed, excluding self
+    const suggestions = allUsers
+      .filter(u => u.id !== currentUser.id && !followingIds.includes(u.id))
+      .slice(0, 5);
+    
+    if (suggestions.length === 0) {
+      suggestionsBox.style.display = 'none';
+      return;
+    }
+    
+    suggestionsBox.style.display = 'block';
+    suggestionsList.innerHTML = suggestions.map(u => `
+      <div class="suggestion-item">
+        <div class="suggestion-user" onclick="showProfile(${u.id})">
+          <img class="suggestion-avatar" src="${u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}&background=3b82f6&color=fff&size=64`}" alt="${u.username}">
+          <span class="suggestion-username">${u.username}</span>
+        </div>
+        <button class="btn btn-follow btn-sm" onclick="toggleFollow(${u.id})"><i class="fas fa-user-plus"></i> Follow</button>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Error loading suggestions:', error);
+  }
+}
+
+// ---------- PROFILE ----------
+userDisplay.addEventListener('click', () => showProfile(currentUser?.id));
+
+async function showProfile(userId) {
+  if (!userId) return;
+  currentProfileUserId = userId;
+  
+  try {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) throw error;
+    
+    profileAvatar.src = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=3b82f6&color=fff&size=128`;
+    profileUsername.textContent = user.username;
+    profileBio.textContent = user.bio || 'No bio yet';
+    
+    // Get post count
+    const { count: postCount } = await supabase
+      .from('posts')
+      .select('id', { count: 'exact' })
+      .eq('author_id', userId);
+    profilePostCount.textContent = postCount || 0;
+    
+    // Get followers count
+    const { count: followersCount } = await supabase
+      .from('followers')
+      .select('id', { count: 'exact' })
+      .eq('following_id', userId);
+    profileFollowersCount.textContent = followersCount || 0;
+    
+    // Get following count
+    const { count: followingCount } = await supabase
+      .from('followers')
+      .select('id', { count: 'exact' })
+      .eq('follower_id', userId);
+    profileFollowingCount.textContent = followingCount || 0;
+    
+    // Follow button
+    const isOwn = currentUser && currentUser.id === userId;
+    const isFollow = await isFollowing(userId);
+    
+    if (isOwn) {
+      profileFollowBtn.innerHTML = '';
+    } else {
+      profileFollowBtn.innerHTML = `
+        <button class="btn ${isFollow ? 'btn-unfollow' : 'btn-follow'}" onclick="toggleFollow(${userId})">
+          <i class="fas ${isFollow ? 'fa-user-minus' : 'fa-user-plus'}"></i>
+          ${isFollow ? 'Unfollow' : 'Follow'}
+        </button>
+      `;
+    }
+    
+    profileEditBtn.style.display = isOwn ? 'inline-flex' : 'none';
+    
+    profileModal.classList.add('show');
+  } catch (error) {
+    alert('Error loading profile: ' + error.message);
+  }
+}
+
+// Click on post count to filter
+function filterByUser(userId) {
+  profileModal.classList.remove('show');
+  // Filter by this user
+  const filtered = allPosts.filter(p => p.author_id === userId);
+  renderPosts(filtered);
+  // Also switch feed nav to show we're filtering
+  feedNavBtns.forEach(b => b.classList.remove('active'));
+  document.querySelector('.feed-nav-btn[data-filter="global"]')?.classList.add('active');
+  currentFilter = 'global';
+}
+
+closeProfileModal.addEventListener('click', () => profileModal.classList.remove('show'));
+profileModal.addEventListener('click', (e) => {
+  if (e.target === profileModal) profileModal.classList.remove('show');
+});
+
+profileQRBtn.addEventListener('click', () => {
+  if (currentProfileUserId) {
+    const user = allUsers.find(u => u.id === currentProfileUserId);
+    showQR('profile', currentProfileUserId, `${user?.username || 'User'}'s profile`);
+    profileModal.classList.remove('show');
+  }
+});
+
+profileEditBtn.addEventListener('click', () => {
+  const newBio = prompt('Edit your bio:', currentUser?.bio || '');
+  if (newBio !== null && currentUser) {
+    supabase.from('users')
+      .update({ bio: newBio })
+      .eq('id', currentUser.id)
+      .then(() => {
+        currentUser.bio = newBio;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        showProfile(currentUser.id);
       });
+  }
+});
 
-      // ---------- INIT ----------
-      updatePostTypeUI('text');
-      loadPosts();
+// ---------- POST OPERATIONS ----------
+function editPost(postId) {
+  const post = allPosts.find(p => p.id === postId);
+  if (!post || post.author_id !== currentUser?.id) return;
+  
+  editingPostId = postId;
+  postTitleInput.value = post.title || '';
+  quill.root.innerHTML = post.content_html || '';
+  createArea.classList.add('show');
+  createArea.scrollIntoView({ behavior: 'smooth' });
+  
+  if (post.media_type) {
+    const btn = document.querySelector(`.post-option-btn[data-type="${post.media_type}"]`);
+    if (btn) btn.click();
+  }
+}
 
-      console.log('🚀 Secret Files App Loaded');
-      console.log('⚙️ Click the gear icon to change themes');
-      console.log('👑 Click the "Admin" button to unlock admin features');
-      console.log('🔑 Admin password: secret2026');
-    })();
-  </script>
+async function deletePost(postId) {
+  const post = allPosts.find(p => p.id === postId);
+  if (!post || post.author_id !== currentUser?.id) return;
+  if (!confirm('Delete this post permanently?')) return;
+  
+  try {
+    await supabase.from('posts').delete().eq('id', postId);
+    await loadPosts();
+  } catch (error) {
+    alert('Error deleting post: ' + error.message);
+  }
+}
+
+async function viewHistory(postId) {
+  try {
+    const { data, error } = await supabase
+      .from('post_history')
+      .select('*')
+      .eq('post_id', postId)
+      .order('changed_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    if (!data || data.length === 0) {
+      alert('No history available for this post.');
+      return;
+    }
+    
+    let msg = '📜 Post History:\n\n';
+    data.forEach((h, i) => {
+      msg += `Version ${data.length - i} (${new Date(h.changed_at).toLocaleString()}):\n`;
+      msg += `${h.content.substring(0, 200)}${h.content.length > 200 ? '...' : ''}\n\n`;
+    });
+    alert(msg);
+  } catch (error) {
+    alert('Error loading history: ' + error.message);
+  }
+}
+
+// ---------- CREATE POST ----------
+createBtn.addEventListener('click', async () => {
+  if (!currentUser) { showAuthModal(); return; }
+  
+  const title = postTitleInput.value.trim();
+  const content = quill.root.innerHTML;
+  const textContent = quill.getText().trim();
+  
+  if (!textContent && !uploadedFileDataURL && !spotifyInput.value.trim()) {
+    alert('Please add some content to your post.');
+    return;
+  }
+  
+  let mediaData = '';
+  let mediaType = selectedPostType;
+  
+  if (uploadedFileDataURL) {
+    mediaData = uploadedFileDataURL;
+    mediaType = selectedPostType.includes('gif') ? 'gif' : 'image';
+  } else if (spotifyInput.value.trim()) {
+    mediaData = spotifyInput.value.trim();
+    mediaType = 'spotify';
+  }
+  
+  const isPinned = selectedPostType === 'pinned';
+  
+  const postData = {
+    title: title,
+    content: textContent,
+    content_html: content,
+    author_id: currentUser.id,
+    timestamp: new Date().toISOString(),
+    media_data: mediaData,
+    media_type: mediaType,
+    is_pinned: isPinned
+  };
+  
+  try {
+    if (editingPostId) {
+      const { error } = await supabase
+        .from('posts')
+        .update({ ...postData, updated_at: new Date().toISOString() })
+        .eq('id', editingPostId)
+        .eq('author_id', currentUser.id);
+      
+      if (error) throw error;
+      
+      await supabase.from('post_history').insert([{
+        post_id: editingPostId,
+        content: textContent,
+        content_html: content
+      }]);
+      
+      editingPostId = null;
+    } else {
+      const { error } = await supabase.from('posts').insert([postData]);
+      if (error) throw error;
+    }
+    
+    clearBtn.click();
+    await loadPosts();
+  } catch (error) {
+    alert('Error saving post: ' + error.message);
+  }
+});
+
+// ---------- POST TYPE SELECTION ----------
+postOptionBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    postOptionBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    selectedPostType = this.dataset.type;
+    updatePostTypeUI(selectedPostType);
+  });
+});
+
+function updatePostTypeUI(type) {
+  fileUploadWrapper.style.display = 'none';
+  spotifyWrapper.style.display = 'none';
+  filePreview.classList.remove('show');
+  uploadedFileDataURL = null;
+  
+  if (type === 'image' || type === 'text-image') {
+    fileUploadWrapper.style.display = 'block';
+    fileInput.accept = 'image/*';
+  } else if (type === 'gif' || type === 'text-gif') {
+    fileUploadWrapper.style.display = 'block';
+    fileInput.accept = 'image/gif';
+  } else if (type === 'spotify' || type === 'text-spotify') {
+    spotifyWrapper.style.display = 'flex';
+  }
+}
+
+fileInput.addEventListener('change', function(e) {
+  const file = this.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      uploadedFileDataURL = event.target.result;
+      filePreview.src = event.target.result;
+      filePreview.classList.add('show');
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+clearBtn.addEventListener('click', () => {
+  postTitleInput.value = '';
+  quill.setText('');
+  fileInput.value = '';
+  filePreview.classList.remove('show');
+  uploadedFileDataURL = null;
+  spotifyInput.value = '';
+  editingPostId = null;
+});
+
+// ---------- SHARING ----------
+function sharePost(postId) {
+  const post = allPosts.find(p => p.id === postId);
+  if (!post) return;
+  
+  const url = window.location.href + `?post=${postId}`;
+  const text = post.title || 'Check out this post!';
+  
+  if (navigator.share) {
+    navigator.share({
+      title: text,
+      text: post.content?.substring(0, 100) || '',
+      url: url
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('🔗 Link copied to clipboard! Share it with others.');
+    }).catch(() => {
+      prompt('Copy this link:', url);
+    });
+  }
+}
+
+// ---------- QR CODE ----------
+function showQR(type, id, label) {
+  const url = window.location.href + `?${type}=${id}`;
+  currentQRData = { type, id, url, label };
+  
+  qrContainer.innerHTML = '';
+  qrCodeInstance = new QRCode(qrContainer, {
+    text: url,
+    width: 200,
+    height: 200,
+    colorDark: '#ffffff',
+    colorLight: '#0b0d10',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  
+  qrLabel.textContent = `Scan to view ${label || 'this'}`;
+  qrModal.classList.add('show');
+}
+
+closeQRModal.addEventListener('click', () => qrModal.classList.remove('show'));
+qrModal.addEventListener('click', (e) => {
+  if (e.target === qrModal) qrModal.classList.remove('show');
+});
+
+downloadQRBtn.addEventListener('click', () => {
+  const canvas = qrContainer.querySelector('canvas');
+  if (canvas) {
+    const link = document.createElement('a');
+    link.download = `qr-${currentQRData?.type || 'code'}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+});
+
+// ---------- SETTINGS ----------
+settingsBtn.addEventListener('click', () => settingsModal.classList.add('show'));
+closeSettingsModal.addEventListener('click', () => settingsModal.classList.remove('show'));
+settingsModal.addEventListener('click', (e) => {
+  if (e.target === settingsModal) settingsModal.classList.remove('show');
+});
+
+settingsThemeGrid.querySelectorAll('.settings-theme-option').forEach(option => {
+  option.addEventListener('click', function() {
+    const theme = this.dataset.theme;
+    document.body.className = theme;
+    settingsThemeGrid.querySelectorAll('.settings-theme-option').forEach(el => el.classList.remove('active'));
+    this.classList.add('active');
+    localStorage.setItem('selected_theme', theme);
+  });
+});
+
+// ---------- SYNC STATUS ----------
+function updateSyncStatus(status) {
+  if (!syncStatus) return;
+  const icons = { Synced: 'fa-check-circle', Loading: 'fa-spinner fa-spin', Error: 'fa-exclamation-circle' };
+  syncStatus.innerHTML = `<i class="fas ${icons[status] || 'fa-circle'}"></i> ${status}`;
+}
+
+// ---------- INIT ----------
+// Restore theme
+const savedTheme = localStorage.getItem('selected_theme') || 'dark';
+document.body.className = savedTheme;
+document.querySelector(`.settings-theme-option[data-theme="${savedTheme}"]`)?.classList.add('active');
+
+// Check session
+const savedUser = localStorage.getItem('currentUser');
+if (savedUser) {
+  try {
+    currentUser = JSON.parse(savedUser);
+    updateUI();
+    loadAllData();
+  } catch(e) { localStorage.removeItem('currentUser'); }
+} else {
+  updateUI();
+  loadAllData();
+}
+
+// Block devtools
+document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
+    e.preventDefault(); return false;
+  }
+  if (e.ctrlKey && e.key === 'p') { e.preventDefault(); return false; }
+});
+
+console.log('🚀 Secret Social Network Loaded');
+console.log('👤 Everyone must sign up to post!');
+console.log('📌 Following feed shows posts from people you follow');
+console.log('🌍 Global feed shows all posts');
+console.log('📝 Users can only edit/delete their own posts');
+</script>
 </body>
 </html>
