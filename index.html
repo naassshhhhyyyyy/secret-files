@@ -137,11 +137,11 @@
       color: white;
     }
     .btn-purple:hover { background: #7c3aed; }
-    .btn-pink {
-      background: #ec4899;
-      color: white;
+    .btn-gold {
+      background: #f59e0b;
+      color: #1e2329;
     }
-    .btn-pink:hover { background: #db2777; }
+    .btn-gold:hover { background: #d97706; }
 
     .status-badge {
       display: inline-block;
@@ -155,41 +155,62 @@
     .status-badge.error { color: #ef4444; background: rgba(239, 68, 68, 0.2); }
     .status-badge.offline { color: #f59e0b; background: rgba(245, 158, 11, 0.2); }
 
-    #passwordOverlay {
+    /* Admin Password Modal */
+    #adminModal {
       position: fixed;
       inset: 0;
-      background: rgba(8, 10, 14, 0.9);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      display: flex;
+      background: rgba(8, 10, 14, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
       align-items: center;
       justify-content: center;
       z-index: 999;
       padding: 1.5rem;
-      transition: opacity 0.3s;
     }
-    #passwordOverlay.hidden {
-      display: none;
+    #adminModal.show {
+      display: flex;
     }
-    .password-card {
-      background: rgba(25, 30, 38, 0.9);
+    .admin-modal-card {
+      background: rgba(25, 30, 38, 0.95);
       padding: 2.5rem 2.2rem;
       border-radius: 48px;
-      max-width: 420px;
+      max-width: 400px;
       width: 100%;
       border: 1px solid rgba(255,255,255,0.06);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.8);
       text-align: center;
+      position: relative;
     }
-    .password-card h2 {
-      margin-bottom: 1.5rem;
+    .admin-modal-card .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.4);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .admin-modal-card .close-btn:hover {
+      color: #fff;
+      transform: rotate(90deg);
+    }
+    .admin-modal-card h2 {
+      margin-bottom: 0.5rem;
       font-weight: 600;
       display: flex;
       gap: 0.6rem;
       justify-content: center;
       align-items: center;
     }
-    .password-card input {
+    .admin-modal-card p {
+      opacity: 0.6;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    .admin-modal-card input {
       width: 100%;
       padding: 0.9rem 1.2rem;
       border-radius: 60px;
@@ -197,34 +218,23 @@
       background: rgba(0,0,0,0.3);
       color: #fff;
       font-size: 1.1rem;
-      margin-bottom: 0.8rem;
+      margin-bottom: 1.2rem;
       outline: 1px solid rgba(255,255,255,0.1);
       transition: 0.2s;
     }
-    .password-card input:focus {
+    .admin-modal-card input:focus {
       outline: 2px solid #3b82f6;
     }
-    .password-card .btn {
+    .admin-modal-card .btn {
       width: 100%;
       justify-content: center;
       font-size: 1.1rem;
       padding: 0.8rem;
-      margin-top: 0.5rem;
     }
-    .wrong-pass {
+    .admin-wrong-pass {
       color: #f87171;
       margin-top: 0.8rem;
       font-size: 0.9rem;
-    }
-    .password-hint {
-      font-size: 0.8rem;
-      opacity: 0.5;
-      margin-top: 0.5rem;
-    }
-    .password-divider {
-      border: none;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      margin: 1.2rem 0;
     }
 
     .theme-selector {
@@ -339,7 +349,7 @@
 
     .post-options-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 0.6rem;
       margin: 0.8rem 0;
     }
@@ -351,7 +361,7 @@
       color: inherit;
       cursor: pointer;
       transition: 0.2s;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -433,13 +443,13 @@
       margin: 0.4rem 0 0.2rem;
     }
 
-    .visitor-badge {
+    .admin-badge {
       display: inline-block;
       padding: 0.2rem 0.8rem;
       border-radius: 20px;
       font-size: 0.7rem;
-      background: rgba(139, 92, 246, 0.2);
-      color: #a78bfa;
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
     }
 
     @media (max-width: 600px) {
@@ -451,7 +461,7 @@
       .post-options-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 420px) {
-      .password-card { padding: 2rem 1.2rem; }
+      .admin-modal-card { padding: 2rem 1.2rem; }
       .btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
       .post-options-grid { grid-template-columns: 1fr 1fr; }
     }
@@ -499,21 +509,15 @@
   </style>
 </head>
 <body>
-  <!-- PASSWORD OVERLAY -->
-  <div id="passwordOverlay">
-    <div class="password-card">
-      <h2><i class="fas fa-lock"></i> Secret Files</h2>
-      
-      <input type="password" id="passwordInput" placeholder="Enter password" autofocus>
-      <button class="btn btn-primary" id="unlockBtn"><i class="fas fa-key"></i> Unlock</button>
-      
-      <hr class="password-divider">
-      
-      <p style="font-size:0.85rem;opacity:0.6;margin-bottom:0.5rem;">
-        <i class="fas fa-info-circle"></i> Admin: full access | Visitor: view only
-      </p>
-      
-      <div id="wrongPassMsg" class="wrong-pass"></div>
+  <!-- ADMIN MODAL -->
+  <div id="adminModal">
+    <div class="admin-modal-card">
+      <button class="close-btn" id="closeAdminModal"><i class="fas fa-times"></i></button>
+      <h2><i class="fas fa-crown" style="color:#fbbf24;"></i> Admin Access</h2>
+      <p>Enter the admin password to create, edit, or delete posts</p>
+      <input type="password" id="adminPasswordInput" placeholder="Enter admin password" autofocus>
+      <button class="btn btn-gold" id="adminUnlockBtn"><i class="fas fa-key"></i> Unlock Admin</button>
+      <div id="adminWrongPass" class="admin-wrong-pass"></div>
     </div>
   </div>
 
@@ -522,7 +526,7 @@
     <div class="top-bar">
       <div class="logo"><i class="fas fa-folder-open"></i> Secret<span style="font-weight:400;">Files</span></div>
       <div class="toolbar-actions">
-        <span id="userRoleBadge" class="visitor-badge"><i class="fas fa-eye"></i> Visitor</span>
+        <span id="userRoleBadge" class="admin-badge" style="display:none;"><i class="fas fa-crown"></i> Admin</span>
         <span id="syncStatus" class="status-badge"><i class="fas fa-sync fa-spin"></i> Connecting</span>
         <div class="theme-selector">
           <span class="theme-dot active" data-theme="dark" style="background:#0b0d10;"></span>
@@ -532,11 +536,12 @@
           <span class="theme-dot" data-theme="rose" style="background:#4a243d;"></span>
           <span class="theme-dot" data-theme="amber" style="background:#4d3a1a;"></span>
         </div>
-        <button class="btn btn-outline" id="lockBtn"><i class="fas fa-sign-out-alt"></i> Lock</button>
+        <button class="btn btn-gold" id="adminBtn"><i class="fas fa-crown"></i> Admin</button>
+        <button class="btn btn-outline" id="lockAdminBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
       </div>
     </div>
 
-    <!-- Create Post -->
+    <!-- Create Post (hidden by default) -->
     <div id="createPostArea" class="create-post-area" style="display: none;">
       <h4 style="margin-bottom:0.5rem;"><i class="fas fa-pen-fancy"></i> New Secret Post</h4>
       
@@ -556,7 +561,7 @@
           <i class="fab fa-spotify"></i> Spotify
         </button>
         <button class="post-option-btn" data-type="text-image">
-          <i class="fas fa-font"></i>+<i class="fas fa-image"></i> Text+Image
+          <i class="fas fa-font"></i>+<i class="fas fa-image"></i> Text+Img
         </button>
         <button class="post-option-btn" data-type="text-gif">
           <i class="fas fa-font"></i>+<i class="fas fa-film"></i> Text+GIF
@@ -603,9 +608,7 @@
     (function() {
       // ---------- CONFIG ----------
       const ADMIN_PASSWORD = 'secret2026';
-      const VISITOR_PASSWORD = 'visitor123'; // Change this!
-      
-      let userRole = null; // 'admin' or 'visitor'
+      let isAdmin = false;
       let posts = [];
       let selectedPostType = 'text';
       let uploadedFile = null;
@@ -631,11 +634,15 @@
       }
 
       // DOM refs
-      const overlay = document.getElementById('passwordOverlay');
-      const passInput = document.getElementById('passwordInput');
-      const unlockBtn = document.getElementById('unlockBtn');
-      const wrongMsg = document.getElementById('wrongPassMsg');
-      const lockBtn = document.getElementById('lockBtn');
+      const adminModal = document.getElementById('adminModal');
+      const closeAdminModal = document.getElementById('closeAdminModal');
+      const adminPasswordInput = document.getElementById('adminPasswordInput');
+      const adminUnlockBtn = document.getElementById('adminUnlockBtn');
+      const adminWrongPass = document.getElementById('adminWrongPass');
+      const adminBtn = document.getElementById('adminBtn');
+      const lockAdminBtn = document.getElementById('lockAdminBtn');
+      const userRoleBadge = document.getElementById('userRoleBadge');
+      
       const postsFeed = document.getElementById('postsFeed');
       const createArea = document.getElementById('createPostArea');
       const contentInput = document.getElementById('postContentInput');
@@ -643,7 +650,6 @@
       const clearBtn = document.getElementById('clearPostBtn');
       const themeDots = document.querySelectorAll('.theme-dot');
       const syncStatus = document.getElementById('syncStatus');
-      const userRoleBadge = document.getElementById('userRoleBadge');
       
       const fileInput = document.getElementById('fileInput');
       const filePreview = document.getElementById('filePreview');
@@ -651,6 +657,57 @@
       const spotifyWrapper = document.getElementById('spotifyWrapper');
       const spotifyInput = document.getElementById('spotifyInput');
       const postOptionBtns = document.querySelectorAll('.post-option-btn');
+
+      // ---------- ADMIN MODAL ----------
+      function showAdminModal() {
+        adminModal.classList.add('show');
+        adminPasswordInput.value = '';
+        adminWrongPass.textContent = '';
+        setTimeout(() => adminPasswordInput.focus(), 100);
+      }
+
+      function hideAdminModal() {
+        adminModal.classList.remove('show');
+        adminPasswordInput.value = '';
+        adminWrongPass.textContent = '';
+      }
+
+      closeAdminModal.addEventListener('click', hideAdminModal);
+      adminModal.addEventListener('click', function(e) {
+        if (e.target === this) hideAdminModal();
+      });
+
+      adminUnlockBtn.addEventListener('click', function() {
+        const password = adminPasswordInput.value;
+        if (password === ADMIN_PASSWORD) {
+          isAdmin = true;
+          hideAdminModal();
+          createArea.style.display = 'block';
+          adminBtn.style.display = 'none';
+          lockAdminBtn.style.display = 'inline-flex';
+          userRoleBadge.style.display = 'inline-block';
+          loadPosts();
+        } else {
+          adminWrongPass.textContent = '❌ Wrong admin password!';
+          adminPasswordInput.value = '';
+          adminPasswordInput.focus();
+        }
+      });
+
+      adminPasswordInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') adminUnlockBtn.click();
+      });
+
+      adminBtn.addEventListener('click', showAdminModal);
+
+      lockAdminBtn.addEventListener('click', function() {
+        isAdmin = false;
+        createArea.style.display = 'none';
+        adminBtn.style.display = 'inline-flex';
+        lockAdminBtn.style.display = 'none';
+        userRoleBadge.style.display = 'none';
+        renderPosts();
+      });
 
       // ---------- POST TYPE SELECTION ----------
       postOptionBtns.forEach(btn => {
@@ -663,14 +720,12 @@
       });
 
       function updatePostTypeUI(type) {
-        // Hide all extras
         fileUploadWrapper.style.display = 'none';
         spotifyWrapper.style.display = 'none';
         filePreview.classList.remove('show');
         uploadedFile = null;
         uploadedFileDataURL = null;
         
-        // Show based on type
         if (type === 'image' || type === 'text-image') {
           fileUploadWrapper.style.display = 'block';
           fileInput.accept = 'image/*';
@@ -681,7 +736,6 @@
           spotifyWrapper.style.display = 'flex';
         }
         
-        // Show/hide textarea
         const hasText = ['text', 'text-image', 'text-gif', 'text-spotify'].includes(type);
         contentInput.style.display = hasText ? 'block' : 'none';
         if (!hasText) contentInput.value = '';
@@ -702,7 +756,6 @@
         }
       });
 
-      // Clear post
       clearBtn.addEventListener('click', function() {
         contentInput.value = '';
         fileInput.value = '';
@@ -725,19 +778,6 @@
                          status === 'Offline' ? 'offline' : '';
         syncStatus.className = `status-badge ${className}`;
         syncStatus.innerHTML = `<i class="fas ${icon}"></i> ${status}`;
-      }
-
-      function updateUserRoleBadge(role) {
-        if (!userRoleBadge) return;
-        if (role === 'admin') {
-          userRoleBadge.innerHTML = '<i class="fas fa-crown"></i> Admin';
-          userRoleBadge.style.background = 'rgba(250, 204, 21, 0.2)';
-          userRoleBadge.style.color = '#fbbf24';
-        } else {
-          userRoleBadge.innerHTML = '<i class="fas fa-eye"></i> Visitor';
-          userRoleBadge.style.background = 'rgba(139, 92, 246, 0.2)';
-          userRoleBadge.style.color = '#a78bfa';
-        }
       }
 
       // ---------- SUPABASE CRUD ----------
@@ -778,8 +818,8 @@
           const postData = {
             content: content || '',
             timestamp: new Date().toISOString(),
-            media_type: mediaType || 'text',
-            media_data: mediaData || ''
+            media_data: mediaData || '',
+            media_type: mediaType || 'text'
           };
           
           const { data, error } = await supabase
@@ -807,8 +847,8 @@
           const updateData = {
             content: content || '',
             timestamp: new Date().toISOString(),
-            media_type: mediaType || 'text',
-            media_data: mediaData || ''
+            media_data: mediaData || '',
+            media_type: mediaType || 'text'
           };
           
           const { data, error } = await supabase
@@ -855,12 +895,10 @@
       function formatPost(post) {
         let html = '';
         
-        // Text content
         if (post.content) {
           html += `<div>${post.content.replace(/\n/g, '<br>')}</div>`;
         }
         
-        // Media
         if (post.media_data) {
           const mediaType = post.media_type || '';
           
@@ -872,11 +910,6 @@
             const match = post.media_data.match(/spotify\.com\/(track|playlist|episode)\/([a-zA-Z0-9]+)/);
             if (match) {
               html += `<div class="post-media"><iframe src="https://open.spotify.com/embed/${match[1]}/${match[2]}" allow="encrypted-media"></iframe></div>`;
-            }
-          } else if (mediaType === 'youtube') {
-            const match = post.media_data.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-            if (match) {
-              html += `<div class="post-media"><iframe src="https://www.youtube.com/embed/${match[1]}" style="height:200px;" allowfullscreen></iframe></div>`;
             }
           }
         }
@@ -892,7 +925,7 @@
           postsFeed.innerHTML = `
             <div style="text-align:center;padding:2rem;opacity:0.5;">
               <i class="fas fa-inbox fa-2x"></i>
-              <p style="margin-top:0.5rem;">No secrets yet. Be the first to create one!</p>
+              <p style="margin-top:0.5rem;">No secrets yet.</p>
             </div>
           `;
           return;
@@ -900,7 +933,6 @@
 
         let html = '';
         posts.forEach((post, index) => {
-          const isAdmin = userRole === 'admin';
           const postContent = formatPost(post);
           const postId = post.id;
           
@@ -933,7 +965,7 @@
         
         postsFeed.innerHTML = html;
 
-        if (userRole === 'admin') {
+        if (isAdmin) {
           document.querySelectorAll('.editPostBtn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
               const id = parseInt(btn.dataset.id);
@@ -962,8 +994,8 @@
 
       // ---------- CREATE POST ----------
       async function handleCreatePost() {
-        if (userRole !== 'admin') {
-          alert('Only admin can create posts.');
+        if (!isAdmin) {
+          showAdminModal();
           return;
         }
         
@@ -971,7 +1003,6 @@
         let mediaData = '';
         let mediaType = selectedPostType;
         
-        // Handle file upload
         if (selectedPostType.includes('image') || selectedPostType === 'image') {
           if (uploadedFileDataURL) {
             mediaData = uploadedFileDataURL;
@@ -992,7 +1023,6 @@
           }
         }
         
-        // Handle Spotify
         if (selectedPostType.includes('spotify') || selectedPostType === 'spotify') {
           const spotifyUrl = spotifyInput.value.trim();
           if (spotifyUrl) {
@@ -1004,7 +1034,6 @@
           }
         }
         
-        // Text-only validation
         if (selectedPostType === 'text' && !content) {
           alert('Please write some text.');
           return;
@@ -1017,44 +1046,6 @@
         }
       }
 
-      // ---------- PASSWORD ----------
-      function unlock(password) {
-        if (password === ADMIN_PASSWORD) {
-          userRole = 'admin';
-          overlay.classList.add('hidden');
-          createArea.style.display = 'block';
-          updateUserRoleBadge('admin');
-          wrongMsg.textContent = '';
-          passInput.value = '';
-          loadPosts();
-          return true;
-        } else if (password === VISITOR_PASSWORD) {
-          userRole = 'visitor';
-          overlay.classList.add('hidden');
-          createArea.style.display = 'none';
-          updateUserRoleBadge('visitor');
-          wrongMsg.textContent = '';
-          passInput.value = '';
-          loadPosts();
-          return true;
-        } else {
-          wrongMsg.textContent = '❌ Wrong password. Try again.';
-          passInput.value = '';
-          passInput.focus();
-          return false;
-        }
-      }
-
-      function lock() {
-        userRole = null;
-        overlay.classList.remove('hidden');
-        createArea.style.display = 'none';
-        passInput.value = '';
-        wrongMsg.textContent = '';
-        updateUserRoleBadge('visitor');
-        renderPosts();
-      }
-
       // ---------- LOAD POSTS ----------
       async function loadPosts() {
         await fetchPosts();
@@ -1062,11 +1053,6 @@
       }
 
       // ---------- EVENTS ----------
-      unlockBtn.addEventListener('click', () => unlock(passInput.value));
-      passInput.addEventListener('keydown', (e) => { 
-        if (e.key === 'Enter') unlock(passInput.value); 
-      });
-      lockBtn.addEventListener('click', lock);
       createBtn.addEventListener('click', handleCreatePost);
 
       // Theme switching
@@ -1097,22 +1083,12 @@
       });
 
       // ---------- INIT ----------
-      overlay.classList.remove('hidden');
-      createArea.style.display = 'none';
       updatePostTypeUI('text');
-      setTimeout(() => passInput.focus(), 200);
-      
-      const localBackup = localStorage.getItem('secret_posts_backup');
-      if (localBackup) {
-        try {
-          posts = JSON.parse(localBackup);
-          renderPosts();
-        } catch(e) {}
-      }
+      loadPosts();
 
       console.log('🚀 Secret Files App Loaded');
-      console.log('👑 Admin password: secret2026');
-      console.log('👁️ Visitor password: visitor123');
+      console.log('👑 Click the "Admin" button to unlock admin features');
+      console.log('🔑 Admin password: secret2026');
     })();
   </script>
 </body>
