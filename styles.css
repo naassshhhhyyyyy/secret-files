@@ -148,6 +148,10 @@ body.light .app-container {
 .btn-back { background: rgba(255,255,255,0.1); }
 .btn-back:hover { background: rgba(255,255,255,0.2); }
 
+/* Comments button styling */
+.post-actions .btn i.fa-comment { color: #60a5fa; }
+.post-actions .btn:hover i.fa-comment { color: #3b82f6; }
+
 /* ============================================= */
 /* SEARCH                                        */
 /* ============================================= */
@@ -438,7 +442,23 @@ body.light .post-item { background: rgba(255,255,255,0.5); }
   margin-top: 0.8rem;
   padding-top: 0.8rem;
   border-top: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.3s ease;
 }
+.comments-section[style*="display: block"] {
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .comment-item {
   padding: 0.5rem 0;
   display: flex;
@@ -453,6 +473,7 @@ body.light .post-item { background: rgba(255,255,255,0.5); }
 .comment-time { font-size: 0.65rem; opacity: 0.4; }
 .comment-actions { display: flex; gap: 0.5rem; margin-top: 0.2rem; }
 .comment-actions .btn { padding: 0.1rem 0.5rem; font-size: 0.65rem; }
+
 .comment-input-wrapper {
   display: flex;
   gap: 0.5rem;
