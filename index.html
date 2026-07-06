@@ -910,7 +910,7 @@
 
 <script>
 // =============================================
-// COMPLETE JAVASCRIPT - ALL FEATURES
+// COMPLETE JAVASCRIPT - ALL FEATURES (FIXED)
 // =============================================
 
 (function() {
@@ -918,7 +918,6 @@
   const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcmZoamJlaGloZWhiYWRvYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNzgyNTEsImV4cCI6MjA5ODg1NDI1MX0.j541e7W56nVCESK_nsVUsGjAv2mOHGb27wwACJZKlBE';
 
-  // Initialize Supabase
   let supabase;
   try {
     if (typeof window.supabase !== 'undefined') {
@@ -1223,7 +1222,6 @@
     searchResults.classList.add('show');
   }
 
-  // Close search results on outside click
   document.addEventListener('click', function(e) {
     if (!searchInput.contains(e.target) && !searchResults.contains(e.target) && e.target !== searchBtn) {
       searchResults.classList.remove('show');
@@ -1469,7 +1467,6 @@
       }
       container.innerHTML = html;
       
-      // Store reaction data for later use
       window._reactionData = window._reactionData || {};
       window._reactionData[postId] = data;
     } catch (error) {
@@ -1477,50 +1474,49 @@
     }
   }
 
-  // ---------- SHOW REACTION USERS ----------
-  // ---------- SHOW REACTION USERS ----------
-window.showReactionUsers = function(postId, type) {
-  var reactionData = window._reactionData && window._reactionData[postId];
-  if (!reactionData) {
-    alert('No reactions yet.');
-    return;
-  }
-  
-  var users = reactionData.filter(function(r) { return r.reaction_type === type; });
-  if (users.length === 0) {
-    alert('No one has reacted with ' + REACTION_EMOJIS[type] + ' yet.');
-    return;
-  }
-  
-  reactionUsersTitle.innerHTML = '<i class="fas fa-reactions"></i> ' + REACTION_EMOJIS[type] + ' - ' + users.length + ' ' + (users.length === 1 ? 'person' : 'people');
-  
-  reactionUsersList.innerHTML = users.map(function(r) {
-    var user = r.users;
-    if (!user) return '';
-    var avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
-    return '<div class="reaction-user-item">' +
-      '<img class="reaction-user-avatar" src="' + avatar + '" alt="' + user.username + '" onclick="showProfile(\'' + user.id + '\'); closeReactionModal();">' +
-      '<span class="reaction-user-username" onclick="showProfile(\'' + user.id + '\'); closeReactionModal();">' + user.username + '</span>' +
-      '</div>';
-  }).join('');
-  
-  reactionUsersModal.classList.add('show');
-};
+  // ---------- SHOW REACTION USERS (FIXED) ----------
+  window.showReactionUsers = function(postId, type) {
+    var reactionData = window._reactionData && window._reactionData[postId];
+    if (!reactionData) {
+      alert('No reactions yet.');
+      return;
+    }
+    
+    var users = reactionData.filter(function(r) { return r.reaction_type === type; });
+    if (users.length === 0) {
+      alert('No one has reacted with ' + REACTION_EMOJIS[type] + ' yet.');
+      return;
+    }
+    
+    reactionUsersTitle.innerHTML = '<i class="fas fa-reactions"></i> ' + REACTION_EMOJIS[type] + ' - ' + users.length + ' ' + (users.length === 1 ? 'person' : 'people');
+    
+    reactionUsersList.innerHTML = users.map(function(r) {
+      var user = r.users;
+      if (!user) return '';
+      var avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
+      return '<div class="reaction-user-item">' +
+        '<img class="reaction-user-avatar" src="' + avatar + '" alt="' + user.username + '" onclick="showProfile(\'' + user.id + '\'); closeReactionModal();">' +
+        '<span class="reaction-user-username" onclick="showProfile(\'' + user.id + '\'); closeReactionModal();">' + user.username + '</span>' +
+        '</div>';
+    }).join('');
+    
+    reactionUsersModal.classList.add('show');
+  };
 
-// Use a different name for the close function
-function closeReactionModal() {
-  reactionUsersModal.classList.remove('show');
-}
-
-closeReactionUsersModal.addEventListener('click', function() {
-  reactionUsersModal.classList.remove('show');
-});
-
-reactionUsersModal.addEventListener('click', function(e) {
-  if (e.target === reactionUsersModal) {
+  // Fixed: Using a different function name to avoid duplicate
+  function closeReactionModal() {
     reactionUsersModal.classList.remove('show');
   }
-});
+
+  closeReactionUsersModal.addEventListener('click', function() {
+    reactionUsersModal.classList.remove('show');
+  });
+
+  reactionUsersModal.addEventListener('click', function(e) {
+    if (e.target === reactionUsersModal) {
+      reactionUsersModal.classList.remove('show');
+    }
+  });
 
   // ---------- COMMENTS ----------
   window.addComment = async function(postId) {
@@ -1547,7 +1543,6 @@ reactionUsersModal.addEventListener('click', function(e) {
     }
   };
 
-  // Also allow Enter key for comments
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && e.target.id && e.target.id.startsWith('commentInput-')) {
       var postId = parseInt(e.target.id.replace('commentInput-', ''));
@@ -1638,7 +1633,6 @@ reactionUsersModal.addEventListener('click', function(e) {
       }
       await loadSuggestions();
       filterPosts();
-      // Refresh search results if open
       if (searchResults.classList.contains('show')) {
         performSearch();
       }
@@ -2120,13 +2114,11 @@ reactionUsersModal.addEventListener('click', function(e) {
 
   // ---------- INIT ----------
   function init() {
-    // Restore theme
     var savedTheme = localStorage.getItem('selected_theme') || 'dark';
     document.body.className = savedTheme;
     var activeOption = document.querySelector('.settings-theme-option[data-theme="' + savedTheme + '"]');
     if (activeOption) activeOption.classList.add('active');
 
-    // Check session
     var savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
       try {
@@ -2139,7 +2131,6 @@ reactionUsersModal.addEventListener('click', function(e) {
       loadAllData();
     }
 
-    // Block devtools
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
     document.addEventListener('keydown', function(e) {
       if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
@@ -2150,15 +2141,11 @@ reactionUsersModal.addEventListener('click', function(e) {
 
     console.log('🚀 Secret Social Network Loaded');
     console.log('👤 Everyone must sign up to post!');
-    console.log('📌 Following feed shows posts from people you follow');
-    console.log('🌍 Global feed shows all posts');
-    console.log('📝 Users can only edit/delete their own posts');
     console.log('🔍 Search for users using the search bar');
     console.log('👥 Click on followers/following counts to see lists');
     console.log('❤️ Click on reaction counts to see who reacted');
   }
 
-  // Run
   init();
 })();
 </script>
