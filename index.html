@@ -1349,7 +1349,7 @@
   const REACTION_EMOJIS = { like: '👍', heart: '❤️', funny: '😂', wow: '😮', sad: '😢' };
   let reactionData = {};
 
-  window.toggleReaction = async function(postId, prefix) {
+  window.toggleReaction = async function(postId, reactionType, prefix) {
     if (!currentUser) { showAuthModal(); return; }
     
     try {
@@ -1358,7 +1358,7 @@
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', currentUser.id)
-        .eq('reaction_type', type)
+        .eq('reaction_type', reactionType)
         .maybeSingle();
       
       if (existing) {
@@ -1367,11 +1367,11 @@
         await supabase.from('post_reactions').insert([{
           post_id: postId,
           user_id: currentUser.id,
-          reaction_type: type
+          reaction_type: reactionType
         }]);
       }
       
-      loadReactions(postId, prefix);
+      loadReactions(postId, prefix || '');
     } catch (error) {
       console.error('Error toggling reaction:', error);
     }
