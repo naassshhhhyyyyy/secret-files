@@ -1478,42 +1478,49 @@
   }
 
   // ---------- SHOW REACTION USERS ----------
-  window.showReactionUsers = function(postId, type) {
-    var reactionData = window._reactionData && window._reactionData[postId];
-    if (!reactionData) {
-      alert('No reactions yet.');
-      return;
-    }
-    
-    var users = reactionData.filter(function(r) { return r.reaction_type === type; });
-    if (users.length === 0) {
-      alert('No one has reacted with ' + REACTION_EMOJIS[type] + ' yet.');
-      return;
-    }
-    
-    reactionUsersTitle.innerHTML = '<i class="fas fa-reactions"></i> ' + REACTION_EMOJIS[type] + ' - ' + users.length + ' ' + (users.length === 1 ? 'person' : 'people');
-    
-    reactionUsersList.innerHTML = users.map(function(r) {
-      var user = r.users;
-      if (!user) return '';
-      var avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
-      return '<div class="reaction-user-item">' +
-        '<img class="reaction-user-avatar" src="' + avatar + '" alt="' + user.username + '" onclick="showProfile(\'' + user.id + '\'); closeReactionUsersModal();">' +
-        '<span class="reaction-user-username" onclick="showProfile(\'' + user.id + '\'); closeReactionUsersModal();">' + user.username + '</span>' +
-        '</div>';
-    }).join('');
-    
-    reactionUsersModal.classList.add('show');
-  };
+  // ---------- SHOW REACTION USERS ----------
+window.showReactionUsers = function(postId, type) {
+  var reactionData = window._reactionData && window._reactionData[postId];
+  if (!reactionData) {
+    alert('No reactions yet.');
+    return;
+  }
+  
+  var users = reactionData.filter(function(r) { return r.reaction_type === type; });
+  if (users.length === 0) {
+    alert('No one has reacted with ' + REACTION_EMOJIS[type] + ' yet.');
+    return;
+  }
+  
+  reactionUsersTitle.innerHTML = '<i class="fas fa-reactions"></i> ' + REACTION_EMOJIS[type] + ' - ' + users.length + ' ' + (users.length === 1 ? 'person' : 'people');
+  
+  reactionUsersList.innerHTML = users.map(function(r) {
+    var user = r.users;
+    if (!user) return '';
+    var avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
+    return '<div class="reaction-user-item">' +
+      '<img class="reaction-user-avatar" src="' + avatar + '" alt="' + user.username + '" onclick="showProfile(\'' + user.id + '\'); closeReactionModal();">' +
+      '<span class="reaction-user-username" onclick="showProfile(\'' + user.id + '\'); closeReactionModal();">' + user.username + '</span>' +
+      '</div>';
+  }).join('');
+  
+  reactionUsersModal.classList.add('show');
+};
 
-  function closeReactionUsersModal() {
+// Use a different name for the close function
+function closeReactionModal() {
+  reactionUsersModal.classList.remove('show');
+}
+
+closeReactionUsersModal.addEventListener('click', function() {
+  reactionUsersModal.classList.remove('show');
+});
+
+reactionUsersModal.addEventListener('click', function(e) {
+  if (e.target === reactionUsersModal) {
     reactionUsersModal.classList.remove('show');
   }
-
-  closeReactionUsersModal.addEventListener('click', closeReactionUsersModal);
-  reactionUsersModal.addEventListener('click', function(e) {
-    if (e.target === reactionUsersModal) closeReactionUsersModal();
-  });
+});
 
   // ---------- COMMENTS ----------
   window.addComment = async function(postId) {
