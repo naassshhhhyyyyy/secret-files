@@ -1,5 +1,5 @@
 // =============================================
-// COMPLETE JAVASCRIPT - FIXED EDIT POST
+// COMPLETE JAVASCRIPT - FULL IMPLEMENTATION
 // =============================================
 
 (function() {
@@ -501,9 +501,11 @@
       html += '<div class="post-content">' + post.content_html + '</div>';
       if (post.media_data) html += renderMedia(post);
       
+      // Reactions
       html += '<div class="post-reactions" id="profile-reactions-' + post.id + '"><span style="font-size:0.8rem;opacity:0.5;">Loading reactions...</span></div>';
       
-      html += '<div class="comments-section" id="profile-comments-' + post.id + '">';
+      // Comments section - HIDDEN by default
+      html += '<div class="comments-section" id="profile-comments-' + post.id + '" style="display:none;">';
       html += '<div id="profile-commentsList-' + post.id + '"></div>';
       if (currentUser) {
         html += '<div class="comment-input-wrapper">';
@@ -513,7 +515,9 @@
       }
       html += '</div>';
       
+      // Post Actions
       html += '<div class="post-actions">';
+      html += '<button class="btn btn-outline" onclick="toggleComments(\'' + post.id + '\', \'profile-\')"><i class="fas fa-comment"></i> Comments <span id="profile-commentCount-' + post.id + '" style="font-size:0.7rem;opacity:0.6;"></span></button>';
       if (isAuthor) {
         html += '<button class="btn btn-outline" onclick="editPost(' + post.id + ')"><i class="fas fa-edit"></i> Edit</button>';
         html += '<button class="btn btn-danger" onclick="deletePost(' + post.id + ')"><i class="fas fa-trash"></i> Delete</button>';
@@ -530,6 +534,7 @@
     posts.forEach(function(post) {
       loadComments(post.id, 'profile-');
       loadReactions(post.id, 'profile-');
+      updateCommentCount(post.id, 'profile-');
     });
   }
 
@@ -666,7 +671,11 @@
       }]);
       
       input.value = '';
-      loadComments(postId, idPrefix);
+      await loadComments(postId, idPrefix);
+      // Make sure comments section is visible after adding
+      const commentsSection = document.getElementById(idPrefix + 'comments-' + postId);
+      if (commentsSection) commentsSection.style.display = 'block';
+      
     } catch (error) {
       alert('Error adding comment: ' + error.message);
     }
@@ -706,27 +715,62 @@
       
       if (!data || data.length === 0) {
         container.innerHTML = '<div style="font-size:0.8rem;opacity:0.4;padding:0.5rem 0;">No comments yet</div>';
-        return;
+      } else {
+        let html = '';
+        data.forEach(function(comment) {
+          const author = comment.users?.username || 'Unknown';
+          const avatar = comment.users?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(author) + '&background=3b82f6&color=fff&size=64';
+          html += '<div class="comment-item">';
+          html += '<img class="comment-avatar" src="' + avatar + '" alt="' + author + '" onclick="showProfilePage(\'' + comment.user_id + '\')">';
+          html += '<div class="comment-body">';
+          html += '<div class="comment-author" onclick="showProfilePage(\'' + comment.user_id + '\')">' + author + '</div>';
+          html += '<div class="comment-text">' + comment.content + '</div>';
+          html += '<div class="comment-time">' + new Date(comment.created_at).toLocaleString() + '</div>';
+          if (currentUser && comment.user_id === currentUser.id) {
+            html += '<div class="comment-actions"><button class="btn btn-danger btn-sm" onclick="deleteComment(' + comment.id + ', ' + postId + ', \'' + idPrefix + '\')"><i class="fas fa-trash"></i></button></div>';
+          }
+          html += '</div></div>';
+        });
+        container.innerHTML = html;
       }
       
-      let html = '';
-      data.forEach(function(comment) {
-        const author = comment.users?.username || 'Unknown';
-        const avatar = comment.users?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(author) + '&background=3b82f6&color=fff&size=64';
-        html += '<div class="comment-item">';
-        html += '<img class="comment-avatar" src="' + avatar + '" alt="' + author + '" onclick="showProfilePage(\'' + comment.user_id + '\')">';
-        html += '<div class="comment-body">';
-        html += '<div class="comment-author" onclick="showProfilePage(\'' + comment.user_id + '\')">' + author + '</div>';
-        html += '<div class="comment-text">' + comment.content + '</div>';
-        html += '<div class="comment-time">' + new Date(comment.created_at).toLocaleString() + '</div>';
-        if (currentUser && comment.user_id === currentUser.id) {
-          html += '<div class="comment-actions"><button class="btn btn-danger btn-sm" onclick="deleteComment(' + comment.id + ', ' + postId + ', \'' + idPrefix + '\')"><i class="fas fa-trash"></i></button></div>';
-        }
-        html += '</div></div>';
-      });
-      container.innerHTML = html;
+      // Update comment count
+      updateCommentCount(postId, idPrefix);
+      
     } catch (error) {
       console.error('Error loading comments:', error);
+    }
+  }
+
+  // ---------- TOGGLE COMMENTS ----------
+  window.toggleComments = function(postId, prefix) {
+    const idPrefix = prefix || '';
+    const commentsSection = document.getElementById(idPrefix + 'comments-' + postId);
+    
+    if (!commentsSection) return;
+    
+    // Toggle visibility
+    if (commentsSection.style.display === 'none') {
+      commentsSection.style.display = 'block';
+      // Load comments if not loaded yet
+      loadComments(postId, idPrefix);
+    } else {
+      commentsSection.style.display = 'none';
+    }
+  };
+
+  // ---------- UPDATE COMMENT COUNT ----------
+  function updateCommentCount(postId, prefix) {
+    const idPrefix = prefix || '';
+    const countSpan = document.getElementById(idPrefix + 'commentCount-' + postId);
+    if (!countSpan) return;
+    
+    // Count comments from the comments list
+    const commentsList = document.getElementById(idPrefix + 'commentsList-' + postId);
+    if (commentsList) {
+      const commentItems = commentsList.querySelectorAll('.comment-item');
+      const count = commentItems.length;
+      countSpan.textContent = count > 0 ? '(' + count + ')' : '';
     }
   }
 
@@ -927,9 +971,11 @@
       html += '<div class="post-content">' + post.content_html + '</div>';
       if (post.media_data) html += renderMedia(post);
       
+      // Reactions
       html += '<div class="post-reactions" id="reactions-' + post.id + '"><span style="font-size:0.8rem;opacity:0.5;">Loading reactions...</span></div>';
       
-      html += '<div class="comments-section" id="comments-' + post.id + '">';
+      // Comments section - HIDDEN by default
+      html += '<div class="comments-section" id="comments-' + post.id + '" style="display:none;">';
       html += '<div id="commentsList-' + post.id + '"></div>';
       if (currentUser) {
         html += '<div class="comment-input-wrapper">';
@@ -939,7 +985,9 @@
       }
       html += '</div>';
       
+      // Post Actions
       html += '<div class="post-actions">';
+      html += '<button class="btn btn-outline" onclick="toggleComments(' + post.id + ')"><i class="fas fa-comment"></i> Comments <span id="commentCount-' + post.id + '" style="font-size:0.7rem;opacity:0.6;"></span></button>';
       if (isAuthor) {
         html += '<button class="btn btn-outline" onclick="editPost(' + post.id + ')"><i class="fas fa-edit"></i> Edit</button>';
         html += '<button class="btn btn-danger" onclick="deletePost(' + post.id + ')"><i class="fas fa-trash"></i> Delete</button>';
@@ -956,6 +1004,7 @@
     posts.forEach(function(post) {
       loadComments(post.id);
       loadReactions(post.id);
+      updateCommentCount(post.id);
     });
   }
 
@@ -977,11 +1026,10 @@
     return '';
   }
 
-  // ---------- POST OPERATIONS (FIXED) ----------
+  // ---------- POST OPERATIONS ----------
   window.editPost = function(postId) {
     if (!currentUser) { showAuthModal(); return; }
     
-    // Find post in allPosts (works for both main feed and profile)
     const post = allPosts.find(function(p) { return p.id === postId; });
     
     if (!post) {
@@ -989,23 +1037,19 @@
       return;
     }
     
-    // Check if current user is the author
     if (post.author_id !== currentUser.id) {
       alert('You can only edit your own posts.');
       return;
     }
     
-    // Populate the edit form
     editingPostId = postId;
     postTitleInput.value = post.title || '';
     quill.root.innerHTML = post.content_html || '';
     
-    // Show create area
     createArea.classList.add('show');
     createArea.scrollIntoView({ behavior: 'smooth' });
     createPostToggle.innerHTML = '<i class="fas fa-times"></i> Close';
     
-    // Set the post type
     if (post.media_type) {
       const btn = document.querySelector('.post-option-btn[data-type="' + post.media_type + '"]');
       if (btn) {
@@ -1016,7 +1060,6 @@
       }
     }
     
-    // If there's media data, show it
     if (post.media_data) {
       if (post.media_type === 'image' || post.media_type === 'gif') {
         filePreview.src = post.media_data;
