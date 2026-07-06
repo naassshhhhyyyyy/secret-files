@@ -357,6 +357,17 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    /* Error message styling */
+    .error-message {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      color: #fca5a5;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -412,9 +423,9 @@
       let isOwner = false;
       let posts = [];
 
-      // 🔥 SUPABASE CONFIG - REPLACE WITH YOUR CREDENTIALS
-      const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';  // ← Your Supabase URL
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcmZoamJlaGloZWhiYWRvYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNzgyNTEsImV4cCI6MjA5ODg1NDI1MX0.j541e7W56nVCESK_nsVUsGjAv2mOHGb27wwACJZKlBE';  // ← Your public anon key
+      // 🔥 YOUR SUPABASE CREDENTIALS (YOURS ARE ALREADY HERE!)
+      const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcmZoamJlaGloZWhiYWRvYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNzgyNTEsImV4cCI6MjA5ODg1NDI1MX0.j541e7W56nVCESK_nsVUsGjAv2mOHGb27wwACJZKlBE';
 
       // Initialize Supabase
       const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -432,6 +443,24 @@
       const themeDots = document.querySelectorAll('.theme-dot');
       const syncStatus = document.getElementById('syncStatus');
 
+      // ---------- HELPER FUNCTIONS ----------
+      function updateStatus(status) {
+        if (!syncStatus) return;
+        
+        const icon = status === 'Loading' ? 'fa-sync fa-spin' :
+                    status === 'Saving' ? 'fa-upload fa-spin' :
+                    status === 'Synced' ? 'fa-check-circle' :
+                    status === 'Error' ? 'fa-exclamation-circle' :
+                    status === 'Offline' ? 'fa-wifi' : 'fa-sync';
+                    
+        const className = status === 'Synced' ? 'synced' :
+                         status === 'Error' ? 'error' :
+                         status === 'Offline' ? 'offline' : '';
+                         
+        syncStatus.className = `status-badge ${className}`;
+        syncStatus.innerHTML = `<i class="fas ${icon}"></i> ${status}`;
+      }
+
       // ---------- SUPABASE CRUD OPERATIONS ----------
       
       // Fetch all posts
@@ -439,14 +468,21 @@
         try {
           updateStatus('Loading');
           
+          console.log('📡 Fetching posts from Supabase...');
+          
           const { data, error } = await supabase
             .from('posts')
             .select('*')
             .order('created_at', { ascending: false });
 
-          if (error) throw error;
+          if (error) {
+            console.error('❌ Supabase Error:', error);
+            throw error;
+          }
           
           posts = data || [];
+          console.log(`✅ Loaded ${posts.length} posts`);
+          
           updateStatus('Synced');
           
           // Backup to localStorage
@@ -454,15 +490,31 @@
           
           return posts;
         } catch (error) {
-          console.error('Error fetching posts:', error);
+          console.error('❌ Error fetching posts:', error);
           updateStatus('Error');
+          
+          // Show error in the feed
+          postsFeed.innerHTML = `
+            <div class="error-message">
+              <i class="fas fa-exclamation-triangle"></i>
+              <p><strong>Connection Error</strong></p>
+              <p style="font-size:0.9rem;margin-top:0.5rem;">
+                ${error.message || 'Could not connect to Supabase. Make sure the table "posts" exists and your credentials are correct.'}
+              </p>
+              <p style="font-size:0.8rem;margin-top:0.5rem;opacity:0.7;">
+                💡 Tip: Create the 'posts' table in Supabase SQL Editor
+              </p>
+            </div>
+          `;
           
           // Fallback to localStorage
           const localData = localStorage.getItem('secret_posts_backup');
           if (localData) {
-            posts = JSON.parse(localData);
-            updateStatus('Offline');
-            return posts;
+            try {
+              posts = JSON.parse(localData);
+              updateStatus('Offline');
+              return posts;
+            } catch(e) {}
           }
           return [];
         }
@@ -473,25 +525,30 @@
         try {
           updateStatus('Saving');
           
+          console.log('📝 Creating new post...');
+          
           const { data, error } = await supabase
             .from('posts')
             .insert([
               { 
                 content: content,
-                timestamp: timestamp,
-                created_at: new Date().toISOString()
+                timestamp: timestamp
               }
             ])
             .select();
 
-          if (error) throw error;
+          if (error) {
+            console.error('❌ Create Error:', error);
+            throw error;
+          }
           
+          console.log('✅ Post created successfully');
           updateStatus('Synced');
           return data[0];
         } catch (error) {
-          console.error('Error creating post:', error);
+          console.error('❌ Error creating post:', error);
           updateStatus('Error');
-          alert('⚠️ Could not save to Supabase. Please try again.');
+          alert(`⚠️ Could not save to Supabase: ${error.message || 'Please try again.'}`);
           return null;
         }
       }
@@ -505,8 +562,7 @@
             .from('posts')
             .update({ 
               content: content,
-              timestamp: timestamp,
-              updated_at: new Date().toISOString()
+              timestamp: timestamp
             })
             .eq('id', id)
             .select();
@@ -516,9 +572,9 @@
           updateStatus('Synced');
           return data[0];
         } catch (error) {
-          console.error('Error updating post:', error);
+          console.error('❌ Error updating post:', error);
           updateStatus('Error');
-          alert('⚠️ Could not update post.');
+          alert(`⚠️ Could not update post: ${error.message}`);
           return null;
         }
       }
@@ -538,11 +594,51 @@
           updateStatus('Synced');
           return true;
         } catch (error) {
-          console.error('Error deleting post:', error);
+          console.error('❌ Error deleting post:', error);
           updateStatus('Error');
-          alert('⚠️ Could not delete post.');
+          alert(`⚠️ Could not delete post: ${error.message}`);
           return false;
         }
+      }
+
+      // ---------- FORMAT CONTENT ----------
+      function formatContent(text) {
+        if (!text) return '';
+        let result = '';
+        const lines = text.split('\n');
+        for (let line of lines) {
+          let trimmed = line.trim();
+          
+          // Check for image URL
+          if (trimmed.match(/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i)) {
+            result += `<img src="${trimmed}" alt="media" loading="lazy" style="max-width:100%;max-height:300px;border-radius:16px;margin:6px 0;" onerror="this.style.display='none'">`;
+          } 
+          // Check for Spotify URL
+          else if (trimmed.includes('spotify.com/track/') || trimmed.includes('spotify.com/playlist/') || trimmed.includes('spotify.com/episode/')) {
+            let match = trimmed.match(/spotify\.com\/(track|playlist|episode)\/([a-zA-Z0-9]+)/);
+            if (match) {
+              const type = match[1];
+              const id = match[2];
+              result += `<iframe src="https://open.spotify.com/embed/${type}/${id}" style="width:100%;height:80px;border-radius:20px;" allow="encrypted-media"></iframe>`;
+            } else {
+              result += `<span>${trimmed}</span>`;
+            }
+          } 
+          // Check for YouTube URL
+          else if (trimmed.includes('youtube.com/watch') || trimmed.includes('youtu.be/')) {
+            let match = trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+            if (match) {
+              result += `<iframe src="https://www.youtube.com/embed/${match[1]}" style="width:100%;height:200px;border-radius:20px;margin:6px 0;" allow="encrypted-media" allowfullscreen></iframe>`;
+            } else {
+              result += `<span>${trimmed}</span>`;
+            }
+          }
+          else {
+            result += `<span>${trimmed}</span>`;
+          }
+          result += '<br>';
+        }
+        return result || text;
       }
 
       // ---------- RENDER ----------
@@ -622,63 +718,6 @@
             });
           });
         }
-      }
-
-      // ---------- FORMAT CONTENT ----------
-      function formatContent(text) {
-        let result = '';
-        const lines = text.split('\n');
-        for (let line of lines) {
-          let trimmed = line.trim();
-          
-          // Check for image URL
-          if (trimmed.match(/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i)) {
-            result += `<img src="${trimmed}" alt="media" loading="lazy" style="max-width:100%;max-height:300px;border-radius:16px;margin:6px 0;" onerror="this.style.display='none'">`;
-          } 
-          // Check for Spotify URL
-          else if (trimmed.includes('spotify.com/track/') || trimmed.includes('spotify.com/playlist/') || trimmed.includes('spotify.com/episode/')) {
-            let match = trimmed.match(/spotify\.com\/(track|playlist|episode)\/([a-zA-Z0-9]+)/);
-            if (match) {
-              const type = match[1];
-              const id = match[2];
-              result += `<iframe src="https://open.spotify.com/embed/${type}/${id}" style="width:100%;height:80px;border-radius:20px;" allow="encrypted-media"></iframe>`;
-            } else {
-              result += `<span>${trimmed}</span>`;
-            }
-          } 
-          // Check for YouTube URL
-          else if (trimmed.includes('youtube.com/watch') || trimmed.includes('youtu.be/')) {
-            let match = trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-            if (match) {
-              result += `<iframe src="https://www.youtube.com/embed/${match[1]}" style="width:100%;height:200px;border-radius:20px;margin:6px 0;" allow="encrypted-media" allowfullscreen></iframe>`;
-            } else {
-              result += `<span>${trimmed}</span>`;
-            }
-          }
-          else {
-            result += `<span>${trimmed}</span>`;
-          }
-          result += '<br>';
-        }
-        return result || text;
-      }
-
-      // ---------- STATUS UPDATES ----------
-      function updateStatus(status) {
-        if (!syncStatus) return;
-        
-        const icon = status === 'Loading' ? 'fa-sync fa-spin' :
-                    status === 'Saving' ? 'fa-upload fa-spin' :
-                    status === 'Synced' ? 'fa-check-circle' :
-                    status === 'Error' ? 'fa-exclamation-circle' :
-                    status === 'Offline' ? 'fa-wifi' : 'fa-sync';
-                    
-        const className = status === 'Synced' ? 'synced' :
-                         status === 'Error' ? 'error' :
-                         status === 'Offline' ? 'offline' : '';
-                         
-        syncStatus.className = `status-badge ${className}`;
-        syncStatus.innerHTML = `<i class="fas ${icon}"></i> ${status}`;
       }
 
       // ---------- PASSWORD ----------
@@ -785,6 +824,11 @@
           renderPosts();
         } catch(e) {}
       }
+
+      console.log('🚀 Secret Files App Loaded');
+      console.log('📊 Supabase URL:', SUPABASE_URL);
+      console.log('🔑 Supabase Key:', SUPABASE_KEY.substring(0, 20) + '...');
+      console.log('💡 Login with password: secret2026');
     })();
   </script>
 </body>
