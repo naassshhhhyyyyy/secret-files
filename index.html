@@ -83,13 +83,7 @@
     }
     .auth-card input:focus { outline: 2px solid #3b82f6; }
     .auth-card .btn { width: 100%; justify-content: center; padding: 0.8rem; }
-    .auth-card .switch-link {
-      text-align: center;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      opacity: 0.6;
-      cursor: pointer;
-    }
+    .auth-card .switch-link { text-align: center; margin-top: 1rem; font-size: 0.9rem; opacity: 0.6; cursor: pointer; }
     .auth-card .switch-link:hover { opacity: 1; }
     .auth-error { color: #f87171; margin-top: 0.5rem; font-size: 0.85rem; text-align: center; }
     
@@ -102,7 +96,7 @@
       gap: 0.8rem;
       margin-bottom: 1rem;
     }
-    .logo { display: flex; align-items: center; gap: 0.6rem; font-size: 1.6rem; font-weight: 700; }
+    .logo { display: flex; align-items: center; gap: 0.6rem; font-size: 1.6rem; font-weight: 700; cursor: pointer; }
     .logo i { color: #ffb347; }
     
     .user-info {
@@ -148,8 +142,10 @@
     .btn-follow:hover { background: #2563eb; }
     .btn-unfollow { background: #6b7280; color: white; }
     .btn-unfollow:hover { background: #4b5563; }
+    .btn-back { background: rgba(255,255,255,0.1); }
+    .btn-back:hover { background: rgba(255,255,255,0.2); }
     
-    /* Search */
+    /* Search Bar */
     .search-bar {
       display: flex;
       gap: 0.5rem;
@@ -306,7 +302,83 @@
     .spotify-input-wrapper input:focus { outline: 2px solid #3b82f6; }
     .create-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; }
     
-    /* Post Items */
+    /* ============================================= */
+    /* PROFILE PAGE (NEW)                           */
+    /* ============================================= */
+    #profilePage {
+      display: none;
+      padding: 1rem 0;
+    }
+    #profilePage.show { display: block; }
+    
+    .profile-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem;
+      background: rgba(0,0,0,0.15);
+      border-radius: 32px;
+      margin-bottom: 1.5rem;
+    }
+    .profile-header-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #3b82f6;
+      margin-bottom: 0.5rem;
+    }
+    .profile-header-username {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+    .profile-header-bio {
+      opacity: 0.6;
+      font-size: 1rem;
+      margin: 0.3rem 0;
+    }
+    .profile-header-stats {
+      display: flex;
+      gap: 2.5rem;
+      margin: 1rem 0;
+    }
+    .profile-header-stat {
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .profile-header-stat:hover .stat-number { color: #3b82f6; }
+    .profile-header-stat .stat-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+    .profile-header-stat .stat-label {
+      font-size: 0.75rem;
+      opacity: 0.5;
+    }
+    .profile-header-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    /* Profile Feed */
+    .profile-feed {
+      margin-top: 1rem;
+    }
+    .profile-feed-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+    
+    /* Hide main feed when profile is shown */
+    .main-feed.hidden { display: none; }
+    
+    /* Post Items (same as before) */
     .post-item {
       background: rgba(0,0,0,0.2);
       border-radius: 28px;
@@ -407,7 +479,7 @@
     .post-actions .btn { padding: 0.2rem 0.8rem; font-size: 0.75rem; }
     
     /* Modals */
-    #qrModal, #settingsModal, #profileModal, #userListModal, #reactionUsersModal {
+    #qrModal, #settingsModal, #userListModal, #reactionUsersModal {
       position: fixed;
       inset: 0;
       background: rgba(8,10,14,0.9);
@@ -418,9 +490,9 @@
       z-index: 9998;
       padding: 1.5rem;
     }
-    #qrModal.show, #settingsModal.show, #profileModal.show, #userListModal.show, #reactionUsersModal.show { display: flex; }
+    #qrModal.show, #settingsModal.show, #userListModal.show, #reactionUsersModal.show { display: flex; }
     
-    .qr-card, .settings-card, .profile-card, .user-list-card, .reaction-users-card {
+    .qr-card, .settings-card, .user-list-card, .reaction-users-card {
       background: rgba(25,30,38,0.95);
       padding: 2rem;
       border-radius: 32px;
@@ -430,7 +502,7 @@
       overflow-y: auto;
       position: relative;
     }
-    .qr-card .close-btn, .settings-card .close-btn, .profile-card .close-btn, 
+    .qr-card .close-btn, .settings-card .close-btn, 
     .user-list-card .close-btn, .reaction-users-card .close-btn {
       position: absolute;
       top: 1rem;
@@ -441,21 +513,11 @@
       font-size: 1.5rem;
       cursor: pointer;
     }
-    .qr-card .close-btn:hover, .settings-card .close-btn:hover, .profile-card .close-btn:hover,
+    .qr-card .close-btn:hover, .settings-card .close-btn:hover,
     .user-list-card .close-btn:hover, .reaction-users-card .close-btn:hover {
       color: #fff;
       transform: rotate(90deg);
     }
-    
-    .profile-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #3b82f6; margin: 0.5rem auto; }
-    .profile-username { font-size: 1.3rem; font-weight: 600; text-align: center; }
-    .profile-bio { opacity: 0.6; font-size: 0.9rem; margin: 0.5rem 0; text-align: center; }
-    .profile-stats { display: flex; justify-content: center; gap: 2rem; margin: 1rem 0; }
-    .profile-stat { text-align: center; cursor: pointer; }
-    .profile-stat:hover .profile-stat-number { color: #3b82f6; }
-    .profile-stat-number { font-size: 1.2rem; font-weight: 600; transition: 0.2s; }
-    .profile-stat-label { font-size: 0.7rem; opacity: 0.5; }
-    .profile-actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
     
     .settings-theme-grid {
       display: grid;
@@ -483,6 +545,19 @@
     
     #qrContainer { display: flex; justify-content: center; margin: 1rem 0; }
     
+    .user-list-items, .reaction-users-list { max-height: 300px; overflow-y: auto; margin-top: 1rem; }
+    .user-list-item, .reaction-user-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .user-list-item:last-child, .reaction-user-item:last-child { border-bottom: none; }
+    .user-list-user, .reaction-user-item { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; flex: 1; }
+    .user-list-avatar, .reaction-user-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+    .user-list-username, .reaction-user-username { font-size: 0.85rem; font-weight: 500; }
+    
     .loading-spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%; border-top-color: #3b82f6; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
@@ -504,19 +579,6 @@
     .suggestion-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
     .suggestion-username { font-size: 0.85rem; font-weight: 500; }
     
-    .user-list-items, .reaction-users-list { max-height: 300px; overflow-y: auto; margin-top: 1rem; }
-    .user-list-item, .reaction-user-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-    }
-    .user-list-item:last-child, .reaction-user-item:last-child { border-bottom: none; }
-    .user-list-user, .reaction-user-item { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; flex: 1; }
-    .user-list-avatar, .reaction-user-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
-    .user-list-username, .reaction-user-username { font-size: 0.85rem; font-weight: 500; }
-    
     @media (max-width: 600px) {
       .app-container { padding: 1rem; }
       .top-bar { flex-direction: column; align-items: stretch; }
@@ -525,7 +587,7 @@
       .post-options-grid { grid-template-columns: repeat(2,1fr); }
       .settings-theme-grid { grid-template-columns: repeat(2,1fr); }
       .feed-nav { justify-content: center; }
-      .profile-stats { gap: 1rem; }
+      .profile-header-stats { gap: 1rem; }
       .search-bar { flex-direction: column; }
     }
     
@@ -535,7 +597,9 @@
 </head>
 <body>
 
-<!-- AUTH MODAL -->
+<!-- ============================================= -->
+<!-- AUTH MODAL                                     -->
+<!-- ============================================= -->
 <div id="authModal">
   <div class="auth-card">
     <h2 id="authTitle"><i class="fas fa-user"></i> Login</h2>
@@ -548,7 +612,9 @@
   </div>
 </div>
 
-<!-- QR MODAL -->
+<!-- ============================================= -->
+<!-- QR MODAL                                       -->
+<!-- ============================================= -->
 <div id="qrModal">
   <div class="qr-card">
     <button class="close-btn" id="closeQRModal"><i class="fas fa-times"></i></button>
@@ -559,7 +625,9 @@
   </div>
 </div>
 
-<!-- SETTINGS MODAL -->
+<!-- ============================================= -->
+<!-- SETTINGS MODAL                                 -->
+<!-- ============================================= -->
 <div id="settingsModal">
   <div class="settings-card">
     <button class="close-btn" id="closeSettingsModal"><i class="fas fa-times"></i></button>
@@ -575,38 +643,9 @@
   </div>
 </div>
 
-<!-- PROFILE MODAL -->
-<div id="profileModal">
-  <div class="profile-card">
-    <button class="close-btn" id="closeProfileModal"><i class="fas fa-times"></i></button>
-    <div id="profileContent">
-      <img id="profileAvatar" class="profile-avatar" src="" alt="Avatar">
-      <div class="profile-username" id="profileUsername">Username</div>
-      <div class="profile-bio" id="profileBio">Bio goes here</div>
-      <div class="profile-stats">
-        <div class="profile-stat" onclick="window.filterByUser(window.currentProfileUserId)">
-          <div class="profile-stat-number" id="profilePostCount">0</div>
-          <div class="profile-stat-label">Posts</div>
-        </div>
-        <div class="profile-stat" onclick="window.showUserList('followers')">
-          <div class="profile-stat-number" id="profileFollowersCount">0</div>
-          <div class="profile-stat-label">Followers</div>
-        </div>
-        <div class="profile-stat" onclick="window.showUserList('following')">
-          <div class="profile-stat-number" id="profileFollowingCount">0</div>
-          <div class="profile-stat-label">Following</div>
-        </div>
-      </div>
-      <div id="profileFollowBtn"></div>
-      <div class="profile-actions" style="margin-top:0.5rem;">
-        <button class="btn btn-outline" id="profileQRBtn"><i class="fas fa-qrcode"></i> QR</button>
-        <button class="btn btn-outline" id="profileEditBtn" style="display:none;"><i class="fas fa-edit"></i> Edit</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- USER LIST MODAL -->
+<!-- ============================================= -->
+<!-- USER LIST MODAL                                -->
+<!-- ============================================= -->
 <div id="userListModal">
   <div class="user-list-card">
     <button class="close-btn" id="closeUserListModal"><i class="fas fa-times"></i></button>
@@ -615,7 +654,9 @@
   </div>
 </div>
 
-<!-- REACTION USERS MODAL -->
+<!-- ============================================= -->
+<!-- REACTION USERS MODAL                           -->
+<!-- ============================================= -->
 <div id="reactionUsersModal">
   <div class="reaction-users-card">
     <button class="close-btn" id="closeReactionUsersModal"><i class="fas fa-times"></i></button>
@@ -624,14 +665,17 @@
   </div>
 </div>
 
-<!-- MAIN APP -->
+<!-- ============================================= -->
+<!-- MAIN APP                                       -->
+<!-- ============================================= -->
 <div class="app-container">
+  <!-- Top Bar -->
   <div class="top-bar">
-    <div class="logo"><i class="fas fa-folder-open"></i> Secret<span style="font-weight:400;">Social</span></div>
+    <div class="logo" onclick="goHome()"><i class="fas fa-folder-open"></i> Secret<span style="font-weight:400;">Social</span></div>
     <div class="user-info">
       <span id="syncStatus" style="font-size:0.7rem;opacity:0.5;"></span>
       <button class="btn btn-outline" id="settingsBtn"><i class="fas fa-gear"></i></button>
-      <div id="userDisplay" style="display:none;align-items:center;gap:0.5rem;cursor:pointer;">
+      <div id="userDisplay" style="display:none;align-items:center;gap:0.5rem;cursor:pointer;" onclick="viewMyProfile()">
         <img id="userAvatarDisplay" class="user-avatar" src="" alt="Avatar">
         <span id="userNameDisplay" style="font-weight:600;font-size:0.9rem;"></span>
       </div>
@@ -640,59 +684,109 @@
     </div>
   </div>
 
+  <!-- Search Bar -->
   <div class="search-bar">
     <input type="text" id="searchInput" placeholder="🔍 Search users...">
     <button class="btn btn-primary" id="searchBtn"><i class="fas fa-search"></i> Search</button>
   </div>
   <div class="search-results" id="searchResults"><div id="searchResultsList"></div></div>
 
-  <div class="feed-nav" id="feedNav">
-    <button class="feed-nav-btn active" data-filter="following"><i class="fas fa-rss"></i> Following</button>
-    <button class="feed-nav-btn" data-filter="global"><i class="fas fa-globe"></i> Global</button>
-    <button class="feed-nav-btn" data-filter="my"><i class="fas fa-user"></i> My Posts</button>
+  <!-- ============================================= -->
+  <!-- MAIN FEED (hidden when profile is shown)      -->
+  <!-- ============================================= -->
+  <div id="mainFeed" class="main-feed">
+    <div class="feed-nav" id="feedNav">
+      <button class="feed-nav-btn active" data-filter="following"><i class="fas fa-rss"></i> Following</button>
+      <button class="feed-nav-btn" data-filter="global"><i class="fas fa-globe"></i> Global</button>
+      <button class="feed-nav-btn" data-filter="my"><i class="fas fa-user"></i> My Posts</button>
+    </div>
+
+    <button class="create-post-toggle" id="createPostToggle"><i class="fas fa-pen-fancy"></i> Create a new post</button>
+
+    <div id="createPostArea" class="create-post-area">
+      <h4 style="margin-bottom:0.5rem;"><i class="fas fa-pen-fancy"></i> Create Post</h4>
+      <input type="text" id="postTitleInput" placeholder="Post title..." style="width:100%;padding:0.6rem 1rem;border-radius:16px;border:none;background:rgba(0,0,0,0.2);color:inherit;margin-bottom:0.5rem;outline:1px solid rgba(255,255,255,0.05);">
+      <div id="quillEditor"></div>
+      <div class="post-options-grid">
+        <button class="post-option-btn active" data-type="text"><i class="fas fa-font"></i> Text</button>
+        <button class="post-option-btn" data-type="image"><i class="fas fa-image"></i> Image</button>
+        <button class="post-option-btn" data-type="gif"><i class="fas fa-film"></i> GIF</button>
+        <button class="post-option-btn" data-type="spotify"><i class="fab fa-spotify"></i> Spotify</button>
+        <button class="post-option-btn" data-type="pinned"><i class="fas fa-thumbtack"></i> Pin</button>
+      </div>
+      <div class="file-input-wrapper" id="fileUploadWrapper" style="display:none;">
+        <label class="btn btn-outline" for="fileInput"><i class="fas fa-upload"></i> Choose File</label>
+        <input type="file" id="fileInput" accept="image/*,.gif">
+        <img id="filePreview" class="file-preview" alt="Preview">
+      </div>
+      <div class="spotify-input-wrapper" id="spotifyWrapper" style="display:none;">
+        <i class="fab fa-spotify" style="color:#1DB954;"></i>
+        <input type="text" id="spotifyInput" placeholder="Paste Spotify URL">
+      </div>
+      <div class="create-actions">
+        <button class="btn btn-primary" id="createPostBtn"><i class="fas fa-plus-circle"></i> Publish</button>
+        <button class="btn btn-outline" id="clearPostBtn"><i class="fas fa-times"></i> Clear</button>
+      </div>
+    </div>
+
+    <div id="suggestionsBox" class="suggestions-box" style="display:none;">
+      <h4><i class="fas fa-users"></i> Who to follow</h4>
+      <div id="suggestionsList"></div>
+    </div>
+
+    <div class="posts-section" id="postsFeed">
+      <div class="empty-state"><div class="loading-spinner"></div><p>Loading posts...</p></div>
+    </div>
   </div>
 
-  <button class="create-post-toggle" id="createPostToggle"><i class="fas fa-pen-fancy"></i> Create a new post</button>
+  <!-- ============================================= -->
+  <!-- PROFILE PAGE (NEW)                            -->
+  <!-- ============================================= -->
+  <div id="profilePage">
+    <!-- Back button -->
+    <button class="btn btn-back" onclick="goHome()" style="margin-bottom:1rem;">
+      <i class="fas fa-arrow-left"></i> Back to Feed
+    </button>
 
-  <div id="createPostArea" class="create-post-area">
-    <h4 style="margin-bottom:0.5rem;"><i class="fas fa-pen-fancy"></i> Create Post</h4>
-    <input type="text" id="postTitleInput" placeholder="Post title..." style="width:100%;padding:0.6rem 1rem;border-radius:16px;border:none;background:rgba(0,0,0,0.2);color:inherit;margin-bottom:0.5rem;outline:1px solid rgba(255,255,255,0.05);">
-    <div id="quillEditor"></div>
-    <div class="post-options-grid">
-      <button class="post-option-btn active" data-type="text"><i class="fas fa-font"></i> Text</button>
-      <button class="post-option-btn" data-type="image"><i class="fas fa-image"></i> Image</button>
-      <button class="post-option-btn" data-type="gif"><i class="fas fa-film"></i> GIF</button>
-      <button class="post-option-btn" data-type="spotify"><i class="fab fa-spotify"></i> Spotify</button>
-      <button class="post-option-btn" data-type="pinned"><i class="fas fa-thumbtack"></i> Pin</button>
+    <!-- Profile Header -->
+    <div class="profile-header" id="profileHeader">
+      <img id="profilePageAvatar" class="profile-header-avatar" src="" alt="Avatar">
+      <div class="profile-header-username" id="profilePageUsername">Username</div>
+      <div class="profile-header-bio" id="profilePageBio">No bio yet</div>
+      <div class="profile-header-stats">
+        <div class="profile-header-stat" id="profilePagePostStat">
+          <div class="stat-number" id="profilePagePostCount">0</div>
+          <div class="stat-label">Posts</div>
+        </div>
+        <div class="profile-header-stat" onclick="showUserList('followers')">
+          <div class="stat-number" id="profilePageFollowersCount">0</div>
+          <div class="stat-label">Followers</div>
+        </div>
+        <div class="profile-header-stat" onclick="showUserList('following')">
+          <div class="stat-number" id="profilePageFollowingCount">0</div>
+          <div class="stat-label">Following</div>
+        </div>
+      </div>
+      <div class="profile-header-actions">
+        <div id="profilePageFollowBtn"></div>
+        <button class="btn btn-outline" id="profilePageQRBtn"><i class="fas fa-qrcode"></i> QR</button>
+        <button class="btn btn-outline" id="profilePageEditBtn" style="display:none;"><i class="fas fa-edit"></i> Edit Bio</button>
+      </div>
     </div>
-    <div class="file-input-wrapper" id="fileUploadWrapper" style="display:none;">
-      <label class="btn btn-outline" for="fileInput"><i class="fas fa-upload"></i> Choose File</label>
-      <input type="file" id="fileInput" accept="image/*,.gif">
-      <img id="filePreview" class="file-preview" alt="Preview">
-    </div>
-    <div class="spotify-input-wrapper" id="spotifyWrapper" style="display:none;">
-      <i class="fab fa-spotify" style="color:#1DB954;"></i>
-      <input type="text" id="spotifyInput" placeholder="Paste Spotify URL">
-    </div>
-    <div class="create-actions">
-      <button class="btn btn-primary" id="createPostBtn"><i class="fas fa-plus-circle"></i> Publish</button>
-      <button class="btn btn-outline" id="clearPostBtn"><i class="fas fa-times"></i> Clear</button>
-    </div>
-  </div>
 
-  <div id="suggestionsBox" class="suggestions-box" style="display:none;">
-    <h4><i class="fas fa-users"></i> Who to follow</h4>
-    <div id="suggestionsList"></div>
-  </div>
-
-  <div class="posts-section" id="postsFeed">
-    <div class="empty-state"><div class="loading-spinner"></div><p>Loading posts...</p></div>
+    <!-- Profile Feed -->
+    <div class="profile-feed">
+      <div class="profile-feed-title"><i class="fas fa-pen-fancy"></i> Posts</div>
+      <div id="profilePageFeed">
+        <div class="empty-state"><div class="loading-spinner"></div><p>Loading posts...</p></div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
 // =============================================
-// COMPLETE JAVASCRIPT - CLEAN VERSION
+// COMPLETE JAVASCRIPT - WITH PROFILE PAGE
 // =============================================
 
 (function() {
@@ -716,7 +810,7 @@
   let currentUser = null;
   let allPosts = [];
   let currentFilter = 'following';
-  let currentProfileUserId = null;
+  let profileUserId = null;
   let selectedPostType = 'text';
   let uploadedFileDataURL = null;
   let editingPostId = null;
@@ -743,6 +837,8 @@
   const userAvatarDisplay = $('userAvatarDisplay');
   const userNameDisplay = $('userNameDisplay');
 
+  const mainFeed = $('mainFeed');
+  const profilePage = $('profilePage');
   const createPostToggle = $('createPostToggle');
   const createArea = $('createPostArea');
   const postTitleInput = $('postTitleInput');
@@ -773,17 +869,18 @@
   const closeQRModal = $('closeQRModal');
   const downloadQRBtn = $('downloadQRBtn');
 
-  const profileModal = $('profileModal');
-  const closeProfileModal = $('closeProfileModal');
-  const profileAvatar = $('profileAvatar');
-  const profileUsername = $('profileUsername');
-  const profileBio = $('profileBio');
-  const profilePostCount = $('profilePostCount');
-  const profileFollowersCount = $('profileFollowersCount');
-  const profileFollowingCount = $('profileFollowingCount');
-  const profileFollowBtn = $('profileFollowBtn');
-  const profileQRBtn = $('profileQRBtn');
-  const profileEditBtn = $('profileEditBtn');
+  // Profile Page Elements
+  const profilePageAvatar = $('profilePageAvatar');
+  const profilePageUsername = $('profilePageUsername');
+  const profilePageBio = $('profilePageBio');
+  const profilePagePostCount = $('profilePagePostCount');
+  const profilePageFollowersCount = $('profilePageFollowersCount');
+  const profilePageFollowingCount = $('profilePageFollowingCount');
+  const profilePageFollowBtn = $('profilePageFollowBtn');
+  const profilePageQRBtn = $('profilePageQRBtn');
+  const profilePageEditBtn = $('profilePageEditBtn');
+  const profilePageFeed = $('profilePageFeed');
+
   const syncStatus = $('syncStatus');
   const suggestionsBox = $('suggestionsBox');
   const suggestionsList = $('suggestionsList');
@@ -817,6 +914,21 @@
     });
   }
   initQuill();
+
+  // ---------- NAVIGATION ----------
+  window.goHome = function() {
+    profilePage.classList.remove('show');
+    mainFeed.classList.remove('hidden');
+    profileUserId = null;
+    filterPosts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.viewMyProfile = function() {
+    if (currentUser) {
+      showProfilePage(currentUser.id);
+    }
+  };
 
   // ---------- CREATE POST TOGGLE ----------
   createPostToggle.addEventListener('click', function() {
@@ -925,6 +1037,7 @@
     updateUI();
     allPosts = [];
     renderPosts();
+    goHome();
   }
 
   function updateUI() {
@@ -1027,7 +1140,7 @@
           return '<strong style="color:#3b82f6;">' + match + '</strong>';
         });
         return '<div class="search-result-item">' +
-          '<div class="search-result-user" onclick="showProfile(\'' + u.id + '\')">' +
+          '<div class="search-result-user" onclick="showProfilePage(\'' + u.id + '\')">' +
           '<img class="search-result-avatar" src="' + avatar + '" alt="' + u.username + '">' +
           '<span class="search-result-username">' + highlighted + '</span>' +
           '</div>' +
@@ -1069,11 +1182,12 @@
         followingCache.push(userId);
       }
       
-      if (currentProfileUserId) {
-        await showProfile(currentProfileUserId);
-      }
       await loadSuggestions();
       filterPosts();
+      // If viewing profile page, refresh it
+      if (profileUserId === userId || profileUserId === currentUser.id) {
+        await showProfilePage(userId);
+      }
       if (searchResults.classList.contains('show')) {
         performSearch(searchInput.value.trim());
       }
@@ -1082,20 +1196,10 @@
     }
   };
 
-  // ---------- PROFILE ----------
-  function closeProfileModalHandler() {
-    profileModal.classList.remove('show');
-    filterPosts();
-  }
-
-  closeProfileModal.addEventListener('click', closeProfileModalHandler);
-  profileModal.addEventListener('click', function(e) {
-    if (e.target === profileModal) closeProfileModalHandler();
-  });
-
-  window.showProfile = async function(userId) {
+  // ---------- SHOW PROFILE PAGE ----------
+  window.showProfilePage = async function(userId) {
     if (!userId) return;
-    currentProfileUserId = userId;
+    profileUserId = userId;
     
     try {
       const { data: user, error } = await supabase
@@ -1106,69 +1210,121 @@
       
       if (error) throw error;
       
-      profileAvatar.src = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=128';
-      profileUsername.textContent = user.username;
-      profileBio.textContent = user.bio || 'No bio yet';
+      // Update profile header
+      profilePageAvatar.src = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=128';
+      profilePageUsername.textContent = user.username;
+      profilePageBio.textContent = user.bio || 'No bio yet';
       
+      // Get stats
       const { count: postCount } = await supabase
         .from('posts')
         .select('id', { count: 'exact' })
         .eq('author_id', userId);
-      profilePostCount.textContent = postCount || 0;
+      profilePagePostCount.textContent = postCount || 0;
       
       const { count: followersCount } = await supabase
         .from('followers')
         .select('id', { count: 'exact' })
         .eq('following_id', userId);
-      profileFollowersCount.textContent = followersCount || 0;
+      profilePageFollowersCount.textContent = followersCount || 0;
       
       const { count: followingCount } = await supabase
         .from('followers')
         .select('id', { count: 'exact' })
         .eq('follower_id', userId);
-      profileFollowingCount.textContent = followingCount || 0;
+      profilePageFollowingCount.textContent = followingCount || 0;
       
+      // Follow button
       const isOwn = currentUser && currentUser.id === userId;
       const isFollow = followingCache.includes(userId);
       
       if (isOwn) {
-        profileFollowBtn.innerHTML = '';
+        profilePageFollowBtn.innerHTML = '';
       } else {
-        profileFollowBtn.innerHTML = '<button class="btn ' + (isFollow ? 'btn-unfollow' : 'btn-follow') + '" onclick="toggleFollow(\'' + userId + '\')"><i class="fas ' + (isFollow ? 'fa-user-minus' : 'fa-user-plus') + '"></i> ' + (isFollow ? 'Unfollow' : 'Follow') + '</button>';
+        profilePageFollowBtn.innerHTML = '<button class="btn ' + (isFollow ? 'btn-unfollow' : 'btn-follow') + '" onclick="toggleFollow(\'' + userId + '\')"><i class="fas ' + (isFollow ? 'fa-user-minus' : 'fa-user-plus') + '"></i> ' + (isFollow ? 'Unfollow' : 'Follow') + '</button>';
       }
       
-      profileEditBtn.style.display = isOwn ? 'inline-flex' : 'none';
+      profilePageEditBtn.style.display = isOwn ? 'inline-flex' : 'none';
       
-      profileModal.classList.add('show');
+      // Show profile page, hide main feed
+      mainFeed.classList.add('hidden');
+      profilePage.classList.add('show');
       
-      // Filter posts by this user
+      // Load user's posts
       const userPosts = allPosts.filter(function(p) { return p.author_id === userId; });
-      renderPosts(userPosts);
+      renderProfilePosts(userPosts);
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
     } catch (error) {
       alert('Error loading profile: ' + error.message);
     }
   };
 
-  window.filterByUser = function(userId) {
-    profileModal.classList.remove('show');
-    const filtered = allPosts.filter(function(p) { return p.author_id === userId; });
-    renderPosts(filtered);
-    feedNavBtns.forEach(function(b) { b.classList.remove('active'); });
-    const globalBtn = document.querySelector('.feed-nav-btn[data-filter="global"]');
-    if (globalBtn) globalBtn.classList.add('active');
-    currentFilter = 'global';
-  };
-
-  profileQRBtn.addEventListener('click', function() {
-    if (currentProfileUserId) {
-      const user = allUsers.find(function(u) { return u.id === currentProfileUserId; });
-      showQR('profile', currentProfileUserId, (user?.username || 'User') + "'s profile");
-      profileModal.classList.remove('show');
+  // ---------- RENDER PROFILE POSTS ----------
+  function renderProfilePosts(posts) {
+    if (!profilePageFeed) return;
+    
+    if (posts.length === 0) {
+      profilePageFeed.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No posts yet</p></div>';
+      return;
     }
-  });
+    
+    let html = '';
+    posts.forEach(function(post) {
+      const isAuthor = currentUser && post.author_id === currentUser.id;
+      const authorName = post.users?.username || 'Unknown';
+      const authorAvatar = post.users?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(authorName) + '&background=3b82f6&color=fff&size=64';
+      
+      html += '<div class="post-item ' + (post.is_pinned ? 'pinned' : '') + '" id="profile-post-' + post.id + '">';
+      html += '<div class="post-header">';
+      html += '<div>';
+      html += '<div class="post-author" onclick="showProfilePage(\'' + post.author_id + '\')">';
+      html += '<img class="post-author-avatar" src="' + authorAvatar + '" alt="' + authorName + '">';
+      html += '<span class="post-author-name">' + authorName + '</span>';
+      if (post.is_pinned) html += '<span class="pinned-badge"><i class="fas fa-thumbtack"></i> Pinned</span>';
+      html += '</div>';
+      if (post.title) html += '<div class="post-title">' + post.title + '</div>';
+      html += '</div>';
+      html += '<div class="post-meta">' + new Date(post.created_at).toLocaleString() + (post.updated_at !== post.created_at ? ' (edited)' : '') + '</div>';
+      html += '</div>';
+      html += '<div class="post-content">' + post.content_html + '</div>';
+      if (post.media_data) html += renderMedia(post);
+      
+      html += '<div class="post-reactions" id="profile-reactions-' + post.id + '"><span style="font-size:0.8rem;opacity:0.5;">Loading reactions...</span></div>';
+      
+      html += '<div class="comments-section" id="profile-comments-' + post.id + '">';
+      html += '<div id="profile-commentsList-' + post.id + '"></div>';
+      if (currentUser) {
+        html += '<div class="comment-input-wrapper">';
+        html += '<input type="text" id="profile-commentInput-' + post.id + '" placeholder="Write a comment...">';
+        html += '<button class="btn btn-primary btn-sm" onclick="addComment(\'' + post.id + '\', \'profile-\')"><i class="fas fa-paper-plane"></i></button>';
+        html += '</div>';
+      }
+      html += '</div>';
+      
+      html += '<div class="post-actions">';
+      if (isAuthor) {
+        html += '<button class="btn btn-outline" onclick="editPost(' + post.id + ')"><i class="fas fa-edit"></i> Edit</button>';
+        html += '<button class="btn btn-danger" onclick="deletePost(' + post.id + ')"><i class="fas fa-trash"></i> Delete</button>';
+      }
+      html += '<button class="btn btn-outline" onclick="showQR(\'post\', ' + post.id + ', \'' + encodeURIComponent(post.title || 'Post') + '\')"><i class="fas fa-qrcode"></i> QR</button>';
+      html += '<button class="btn btn-outline" onclick="sharePost(' + post.id + ')"><i class="fas fa-share-alt"></i> Share</button>';
+      html += '<button class="btn btn-outline" onclick="viewHistory(' + post.id + ')"><i class="fas fa-history"></i> History</button>';
+      html += '</div>';
+      html += '</div>';
+    });
+    
+    profilePageFeed.innerHTML = html;
+    
+    posts.forEach(function(post) {
+      loadComments(post.id, 'profile-');
+      loadReactions(post.id, 'profile-');
+    });
+  }
 
-  profileEditBtn.addEventListener('click', function() {
+  // ---------- PROFILE EDIT ----------
+  profilePageEditBtn.addEventListener('click', function() {
     const newBio = prompt('Edit your bio:', currentUser?.bio || '');
     if (newBio !== null && currentUser) {
       supabase.from('users')
@@ -1177,76 +1333,23 @@
         .then(function() {
           currentUser.bio = newBio;
           localStorage.setItem('currentUser', JSON.stringify(currentUser));
-          showProfile(currentUser.id);
+          showProfilePage(currentUser.id);
         });
     }
   });
 
-  // ---------- USER LIST (Followers/Following) ----------
-  window.showUserList = async function(type) {
-    if (!currentProfileUserId) return;
-    
-    const title = type === 'followers' ? 'Followers' : 'Following';
-    userListTitle.innerHTML = '<i class="fas fa-users"></i> ' + title;
-    userListItems.innerHTML = '<div style="text-align:center;padding:1rem;opacity:0.5;">Loading...</div>';
-    userListModal.classList.add('show');
-    
-    try {
-      let query = supabase
-        .from('followers')
-        .select(`
-          id,
-          users!followers_follower_id_fkey (id, username, avatar_url),
-          users!followers_following_id_fkey (id, username, avatar_url)
-        `);
-      
-      if (type === 'followers') {
-        query = query.eq('following_id', currentProfileUserId);
-      } else {
-        query = query.eq('follower_id', currentProfileUserId);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      
-      if (!data || data.length === 0) {
-        userListItems.innerHTML = '<div style="text-align:center;padding:1rem;opacity:0.5;">No ' + type + ' yet</div>';
-        return;
-      }
-      
-      let html = '';
-      for (let i = 0; i < data.length; i++) {
-        const item = data[i];
-        const user = type === 'followers' ? item.users_followers_follower_id_fkey : item.users_followers_following_id_fkey;
-        if (!user) continue;
-        const avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
-        const isFollow = followingCache.includes(user.id);
-        html += '<div class="user-list-item">';
-        html += '<div class="user-list-user" onclick="showProfile(\'' + user.id + '\'); userListModal.classList.remove(\'show\');">';
-        html += '<img class="user-list-avatar" src="' + avatar + '" alt="' + user.username + '">';
-        html += '<span class="user-list-username">' + user.username + '</span>';
-        html += '</div>';
-        if (currentUser && currentUser.id !== user.id) {
-          html += '<button class="btn ' + (isFollow ? 'btn-unfollow' : 'btn-follow') + ' btn-sm" onclick="toggleFollow(\'' + user.id + '\')"><i class="fas ' + (isFollow ? 'fa-user-minus' : 'fa-user-plus') + '"></i></button>';
-        }
-        html += '</div>';
-      }
-      userListItems.innerHTML = html;
-    } catch (error) {
-      userListItems.innerHTML = '<div style="text-align:center;padding:1rem;color:#f87171;">Error loading users</div>';
+  profilePageQRBtn.addEventListener('click', function() {
+    if (profileUserId) {
+      const user = allUsers.find(function(u) { return u.id === profileUserId; });
+      showQR('profile', profileUserId, (user?.username || 'User') + "'s profile");
     }
-  };
-
-  closeUserListModal.addEventListener('click', function() { userListModal.classList.remove('show'); });
-  userListModal.addEventListener('click', function(e) {
-    if (e.target === userListModal) userListModal.classList.remove('show');
   });
 
   // ---------- REACTIONS ----------
   const REACTION_EMOJIS = { like: '👍', heart: '❤️', funny: '😂', wow: '😮', sad: '😢' };
   let reactionData = {};
 
-  window.toggleReaction = async function(postId, type) {
+  window.toggleReaction = async function(postId, prefix) {
     if (!currentUser) { showAuthModal(); return; }
     
     try {
@@ -1268,13 +1371,14 @@
         }]);
       }
       
-      loadReactions(postId);
+      loadReactions(postId, prefix);
     } catch (error) {
       console.error('Error toggling reaction:', error);
     }
   };
 
-  async function loadReactions(postId) {
+  async function loadReactions(postId, prefix) {
+    const idPrefix = prefix || '';
     try {
       const { data, error } = await supabase
         .from('post_reactions')
@@ -1283,7 +1387,7 @@
       
       if (error) throw error;
       
-      const container = document.getElementById('reactions-' + postId);
+      const container = document.getElementById(idPrefix + 'reactions-' + postId);
       if (!container) return;
       
       const counts = {};
@@ -1296,7 +1400,7 @@
         const emoji = REACTION_EMOJIS[key];
         const active = userReactions.includes(key) ? 'active' : '';
         const count = counts[key] || 0;
-        html += '<button class="reaction-btn ' + active + '" onclick="toggleReaction(' + postId + ', \'' + key + '\')">';
+        html += '<button class="reaction-btn ' + active + '" onclick="toggleReaction(' + postId + ', \'' + key + '\', \'' + idPrefix + '\')">';
         html += emoji + ' <span class="reaction-count" onclick="event.stopPropagation(); showReactionUsers(' + postId + ', \'' + key + '\')">' + count + '</span>';
         html += '</button>';
       }
@@ -1325,7 +1429,7 @@
       if (!user) return '';
       const avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
       return '<div class="reaction-user-item">' +
-        '<div class="reaction-user-item" onclick="showProfile(\'' + user.id + '\'); reactionUsersModal.classList.remove(\'show\');">' +
+        '<div class="reaction-user-item" onclick="showProfilePage(\'' + user.id + '\'); reactionUsersModal.classList.remove(\'show\');">' +
         '<img class="reaction-user-avatar" src="' + avatar + '" alt="' + user.username + '">' +
         '<span class="reaction-user-username">' + user.username + '</span>' +
         '</div></div>';
@@ -1340,10 +1444,10 @@
   });
 
   // ---------- COMMENTS ----------
-  window.addComment = async function(postId) {
+  window.addComment = async function(postId, prefix) {
     if (!currentUser) { showAuthModal(); return; }
-    
-    const input = document.getElementById('commentInput-' + postId);
+    const idPrefix = prefix || '';
+    const input = document.getElementById(idPrefix + 'commentInput-' + postId);
     const content = input.value.trim();
     if (!content) return;
     
@@ -1355,30 +1459,32 @@
       }]);
       
       input.value = '';
-      loadComments(postId);
+      loadComments(postId, idPrefix);
     } catch (error) {
       alert('Error adding comment: ' + error.message);
     }
   };
 
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && e.target.id && e.target.id.startsWith('commentInput-')) {
-      const postId = parseInt(e.target.id.replace('commentInput-', ''));
-      addComment(postId);
+    if (e.key === 'Enter' && e.target.id && (e.target.id.startsWith('commentInput-') || e.target.id.startsWith('profile-commentInput-'))) {
+      const id = e.target.id.replace('commentInput-', '').replace('profile-commentInput-', '');
+      const prefix = e.target.id.startsWith('profile-') ? 'profile-' : '';
+      addComment(parseInt(id), prefix);
     }
   });
 
-  window.deleteComment = async function(commentId, postId) {
+  window.deleteComment = async function(commentId, postId, prefix) {
     if (!confirm('Delete this comment?')) return;
     try {
       await supabase.from('comments').delete().eq('id', commentId);
-      loadComments(postId);
+      loadComments(postId, prefix || '');
     } catch (error) {
       alert('Error deleting comment: ' + error.message);
     }
   };
 
-  async function loadComments(postId) {
+  async function loadComments(postId, prefix) {
+    const idPrefix = prefix || '';
     try {
       const { data, error } = await supabase
         .from('comments')
@@ -1388,7 +1494,7 @@
       
       if (error) throw error;
       
-      const container = document.getElementById('commentsList-' + postId);
+      const container = document.getElementById(idPrefix + 'commentsList-' + postId);
       if (!container) return;
       
       if (!data || data.length === 0) {
@@ -1401,13 +1507,13 @@
         const author = comment.users?.username || 'Unknown';
         const avatar = comment.users?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(author) + '&background=3b82f6&color=fff&size=64';
         html += '<div class="comment-item">';
-        html += '<img class="comment-avatar" src="' + avatar + '" alt="' + author + '" onclick="showProfile(\'' + comment.user_id + '\')">';
+        html += '<img class="comment-avatar" src="' + avatar + '" alt="' + author + '" onclick="showProfilePage(\'' + comment.user_id + '\')">';
         html += '<div class="comment-body">';
-        html += '<div class="comment-author" onclick="showProfile(\'' + comment.user_id + '\')">' + author + '</div>';
+        html += '<div class="comment-author" onclick="showProfilePage(\'' + comment.user_id + '\')">' + author + '</div>';
         html += '<div class="comment-text">' + comment.content + '</div>';
         html += '<div class="comment-time">' + new Date(comment.created_at).toLocaleString() + '</div>';
         if (currentUser && comment.user_id === currentUser.id) {
-          html += '<div class="comment-actions"><button class="btn btn-danger btn-sm" onclick="deleteComment(' + comment.id + ', ' + postId + ')"><i class="fas fa-trash"></i></button></div>';
+          html += '<div class="comment-actions"><button class="btn btn-danger btn-sm" onclick="deleteComment(' + comment.id + ', ' + postId + ', \'' + idPrefix + '\')"><i class="fas fa-trash"></i></button></div>';
         }
         html += '</div></div>';
       });
@@ -1439,7 +1545,7 @@
       suggestions.forEach(function(user) {
         const avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
         html += '<div class="suggestion-item">';
-        html += '<div class="suggestion-user" onclick="showProfile(\'' + user.id + '\')">';
+        html += '<div class="suggestion-user" onclick="showProfilePage(\'' + user.id + '\')">';
         html += '<img class="suggestion-avatar" src="' + avatar + '" alt="' + user.username + '">';
         html += '<span class="suggestion-username">' + user.username + '</span>';
         html += '</div>';
@@ -1452,6 +1558,67 @@
     }
   }
 
+  // ---------- USER LIST (Followers/Following) ----------
+  window.showUserList = async function(type) {
+    const userId = profileUserId || currentUser?.id;
+    if (!userId) return;
+    
+    const title = type === 'followers' ? 'Followers' : 'Following';
+    userListTitle.innerHTML = '<i class="fas fa-users"></i> ' + title;
+    userListItems.innerHTML = '<div style="text-align:center;padding:1rem;opacity:0.5;">Loading...</div>';
+    userListModal.classList.add('show');
+    
+    try {
+      let query = supabase
+        .from('followers')
+        .select(`
+          id,
+          users!followers_follower_id_fkey (id, username, avatar_url),
+          users!followers_following_id_fkey (id, username, avatar_url)
+        `);
+      
+      if (type === 'followers') {
+        query = query.eq('following_id', userId);
+      } else {
+        query = query.eq('follower_id', userId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        userListItems.innerHTML = '<div style="text-align:center;padding:1rem;opacity:0.5;">No ' + type + ' yet</div>';
+        return;
+      }
+      
+      let html = '';
+      for (let i = 0; i < data.length; i++) {
+        const item = data[i];
+        const user = type === 'followers' ? item.users_followers_follower_id_fkey : item.users_followers_following_id_fkey;
+        if (!user) continue;
+        const avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
+        const isFollow = followingCache.includes(user.id);
+        html += '<div class="user-list-item">';
+        html += '<div class="user-list-user" onclick="showProfilePage(\'' + user.id + '\'); userListModal.classList.remove(\'show\');">';
+        html += '<img class="user-list-avatar" src="' + avatar + '" alt="' + user.username + '">';
+        html += '<span class="user-list-username">' + user.username + '</span>';
+        html += '</div>';
+        if (currentUser && currentUser.id !== user.id) {
+          html += '<button class="btn ' + (isFollow ? 'btn-unfollow' : 'btn-follow') + ' btn-sm" onclick="toggleFollow(\'' + user.id + '\')"><i class="fas ' + (isFollow ? 'fa-user-minus' : 'fa-user-plus') + '"></i></button>';
+        }
+        html += '</div>';
+      }
+      userListItems.innerHTML = html;
+    } catch (error) {
+      userListItems.innerHTML = '<div style="text-align:center;padding:1rem;color:#f87171;">Error loading users</div>';
+    }
+  };
+
+  closeUserListModal.addEventListener('click', function() { userListModal.classList.remove('show'); });
+  userListModal.addEventListener('click', function(e) {
+    if (e.target === userListModal) userListModal.classList.remove('show');
+  });
+
   // ---------- LOAD POSTS ----------
   async function loadPosts() {
     try {
@@ -1463,6 +1630,13 @@
       
       if (error) throw error;
       allPosts = data || [];
+      
+      // If viewing profile, update it
+      if (profilePage.classList.contains('show') && profileUserId) {
+        const userPosts = allPosts.filter(function(p) { return p.author_id === profileUserId; });
+        renderProfilePosts(userPosts);
+      }
+      
       filterPosts();
       updateSyncStatus('Synced');
     } catch (error) {
@@ -1535,7 +1709,7 @@
       html += '<div class="post-item ' + (post.is_pinned ? 'pinned' : '') + '" id="post-' + post.id + '">';
       html += '<div class="post-header">';
       html += '<div>';
-      html += '<div class="post-author" onclick="showProfile(\'' + post.author_id + '\')">';
+      html += '<div class="post-author" onclick="showProfilePage(\'' + post.author_id + '\')">';
       html += '<img class="post-author-avatar" src="' + authorAvatar + '" alt="' + authorName + '">';
       html += '<span class="post-author-name">' + authorName + '</span>';
       if (post.is_pinned) html += '<span class="pinned-badge"><i class="fas fa-thumbtack"></i> Pinned</span>';
@@ -1883,7 +2057,7 @@
 
     console.log('🚀 Secret Social Network Loaded');
     console.log('🔍 Search: Type to see autocomplete suggestions');
-    console.log('👥 Click on search results to view profile & posts');
+    console.log('👥 Click on search results or avatars to view full profile page');
     console.log('❤️ Click on reaction counts to see who reacted');
   }
 
