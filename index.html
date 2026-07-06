@@ -910,7 +910,7 @@
 
 <script>
 // =============================================
-// COMPLETE JAVASCRIPT - ALL FEATURES (FIXED)
+// COMPLETE JAVASCRIPT - WITH AUTOCOMPLETE SEARCH
 // =============================================
 
 (function() {
@@ -942,6 +942,8 @@
   let qrCodeInstance = null;
   let currentQRData = null;
   let allUsers = [];
+  let searchTimeout = null;
+  window._followingCache = [];
 
   // ---------- DOM REFS ----------
   const authModal = document.getElementById('authModal');
@@ -1014,10 +1016,6 @@
   const reactionUsersTitle = document.getElementById('reactionUsersTitle');
   const reactionUsersList = document.getElementById('reactionUsersList');
 
-  let currentUserListType = 'followers';
-  let currentReactionPostId = null;
-  let currentReactionType = null;
-
   // ---------- QUILL EDITOR ----------
   function initQuill() {
     if (quill) return;
@@ -1085,6 +1083,7 @@
         localStorage.setItem('currentUser', JSON.stringify(data));
         hideAuthModal();
         updateUI();
+        updateFollowingCache();
         await loadAllData();
       } else {
         const { data: existing } = await supabase
@@ -1112,6 +1111,7 @@
         localStorage.setItem('currentUser', JSON.stringify(data));
         hideAuthModal();
         updateUI();
+        updateFollowingCache();
         await loadAllData();
       }
     } catch (error) {
@@ -1145,6 +1145,7 @@
   function logout() {
     currentUser = null;
     localStorage.removeItem('currentUser');
+    window._followingCache = [];
     updateUI();
     allPosts = [];
     renderPosts();
@@ -1167,6 +1168,17 @@
     }
   }
 
+  // ---------- FOLLOWING CACHE ----------
+  function updateFollowingCache() {
+    if (!currentUser) return;
+    supabase.from('followers')
+      .select('following_id')
+      .eq('follower_id', currentUser.id)
+      .then(function(result) {
+        window._followingCache = (result.data || []).map(function(f) { return f.following_id; });
+      });
+  }
+
   // ---------- LOAD ALL DATA ----------
   async function loadAllData() {
     await loadUsers();
@@ -1184,37 +1196,66 @@
     }
   }
 
-  // ---------- SEARCH USERS ----------
-  searchBtn.addEventListener('click', function() {
-    performSearch();
-  });
-
-  searchInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') performSearch();
-  });
-
-  function performSearch() {
-    const query = searchInput.value.trim().toLowerCase();
-    if (!query) {
+  // ---------- SEARCH WITH AUTOCOMPLETE ----------
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const query = this.value.trim();
+    
+    if (query.length === 0) {
       searchResults.classList.remove('show');
       return;
     }
     
+    if (query.length < 2) {
+      searchResultsList.innerHTML = '<div style="padding:0.5rem;text-align:center;opacity:0.4;">Type at least 2 characters...</div>';
+      searchResults.classList.add('show');
+      return;
+    }
+    
+    searchTimeout = setTimeout(function() {
+      performSearch(query);
+    }, 300);
+  });
+
+  searchBtn.addEventListener('click', function() {
+    const query = searchInput.value.trim();
+    if (query) performSearch(query);
+  });
+
+  searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const query = this.value.trim();
+      if (query) performSearch(query);
+    }
+  });
+
+  function performSearch(query) {
+    if (!query || query.length < 2) {
+      searchResults.classList.remove('show');
+      return;
+    }
+    
+    const lowerQuery = query.toLowerCase();
     const results = allUsers.filter(function(u) {
-      return u.username.toLowerCase().includes(query) && u.id !== currentUser?.id;
+      return u.username.toLowerCase().includes(lowerQuery) && u.id !== currentUser?.id;
     });
     
     if (results.length === 0) {
-      searchResultsList.innerHTML = '<div style="padding:0.5rem;text-align:center;opacity:0.5;">No users found</div>';
+      searchResultsList.innerHTML = '<div style="padding:0.8rem;text-align:center;opacity:0.5;"><i class="fas fa-search"></i> No users found matching "' + query + '"</div>';
     } else {
       searchResultsList.innerHTML = results.map(function(u) {
         var avatar = u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username) + '&background=3b82f6&color=fff&size=64';
+        var isFollow = currentUser ? window._followingCache.includes(u.id) : false;
+        var highlighted = u.username.replace(new RegExp(query, 'gi'), function(match) {
+          return '<strong style="color:#3b82f6;">' + match + '</strong>';
+        });
         return '<div class="search-result-item">' +
           '<div class="search-result-user" onclick="showProfile(\'' + u.id + '\')">' +
           '<img class="search-result-avatar" src="' + avatar + '" alt="' + u.username + '">' +
-          '<span class="search-result-username">' + u.username + '</span>' +
+          '<span class="search-result-username">' + highlighted + '</span>' +
           '</div>' +
-          '<button class="btn btn-follow btn-sm" onclick="toggleFollow(\'' + u.id + '\')"><i class="fas fa-user-plus"></i> Follow</button>' +
+          (currentUser && currentUser.id !== u.id ? '<button class="btn ' + (isFollow ? 'btn-unfollow' : 'btn-follow') + ' btn-sm" onclick="event.stopPropagation(); toggleFollow(\'' + u.id + '\')"><i class="fas ' + (isFollow ? 'fa-user-minus' : 'fa-user-plus') + '"></i></button>' : '') +
           '</div>';
       }).join('');
     }
@@ -1227,6 +1268,103 @@
       searchResults.classList.remove('show');
     }
   });
+
+  // ---------- OVERRIDE TOGGLE FOLLOW TO UPDATE CACHE ----------
+  const originalToggleFollow = window.toggleFollow;
+  window.toggleFollow = async function(userId) {
+    if (!currentUser) { showAuthModal(); return; }
+    if (userId === currentUser.id) return;
+    
+    try {
+      var { data: existing } = await supabase
+        .from('followers')
+        .select('id')
+        .eq('follower_id', currentUser.id)
+        .eq('following_id', userId)
+        .maybeSingle();
+      
+      if (existing) {
+        await supabase.from('followers').delete().eq('id', existing.id);
+        window._followingCache = window._followingCache.filter(function(id) { return id !== userId; });
+      } else {
+        await supabase.from('followers').insert([{
+          follower_id: currentUser.id,
+          following_id: userId
+        }]);
+        window._followingCache.push(userId);
+      }
+      
+      if (currentProfileUserId) {
+        await showProfile(currentProfileUserId);
+      }
+      await loadSuggestions();
+      filterPosts();
+      if (searchResults.classList.contains('show')) {
+        performSearch(searchInput.value.trim());
+      }
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  // ---------- OVERRIDE SHOW PROFILE TO FILTER POSTS ----------
+  const originalShowProfile = window.showProfile;
+  window.showProfile = async function(userId) {
+    if (!userId) return;
+    currentProfileUserId = userId;
+    
+    try {
+      var { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) throw error;
+      
+      profileAvatar.src = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=128';
+      profileUsername.textContent = user.username;
+      profileBio.textContent = user.bio || 'No bio yet';
+      
+      var { count: postCount } = await supabase
+        .from('posts')
+        .select('id', { count: 'exact' })
+        .eq('author_id', userId);
+      profilePostCount.textContent = postCount || 0;
+      
+      var { count: followersCount } = await supabase
+        .from('followers')
+        .select('id', { count: 'exact' })
+        .eq('following_id', userId);
+      profileFollowersCount.textContent = followersCount || 0;
+      
+      var { count: followingCount } = await supabase
+        .from('followers')
+        .select('id', { count: 'exact' })
+        .eq('follower_id', userId);
+      profileFollowingCount.textContent = followingCount || 0;
+      
+      var isOwn = currentUser && currentUser.id === userId;
+      var isFollow = window._followingCache.includes(userId);
+      
+      if (isOwn) {
+        profileFollowBtn.innerHTML = '';
+      } else {
+        profileFollowBtn.innerHTML = '<button class="btn ' + (isFollow ? 'btn-unfollow' : 'btn-follow') + '" onclick="toggleFollow(\'' + userId + '\')"><i class="fas ' + (isFollow ? 'fa-user-minus' : 'fa-user-plus') + '"></i> ' + (isFollow ? 'Unfollow' : 'Follow') + '</button>';
+      }
+      
+      profileEditBtn.style.display = isOwn ? 'inline-flex' : 'none';
+      
+      profileModal.classList.add('show');
+      
+      // Filter posts by this user
+      var userPosts = allPosts.filter(function(p) { return p.author_id === userId; });
+      renderPosts(userPosts);
+      
+    } catch (error) {
+      alert('Error loading profile: ' + error.message);
+    }
+  };
 
   // ---------- LOAD POSTS ----------
   async function loadPosts() {
@@ -1259,21 +1397,15 @@
     if (currentFilter === 'my' && currentUser) {
       filtered = filtered.filter(function(p) { return p.author_id === currentUser.id; });
     } else if (currentFilter === 'following' && currentUser) {
-      supabase.from('followers')
-        .select('following_id')
-        .eq('follower_id', currentUser.id)
-        .then(function(result) {
-          var data = result.data || [];
-          var followingIds = data.map(function(f) { return f.following_id; });
-          if (followingIds.length === 0) {
-            renderFilteredPosts(filtered);
-            return;
-          }
-          var filteredPosts = filtered.filter(function(p) {
-            return followingIds.includes(p.author_id) || p.author_id === currentUser.id;
-          });
-          renderFilteredPosts(filteredPosts);
-        });
+      var followingIds = window._followingCache || [];
+      if (followingIds.length === 0) {
+        renderFilteredPosts(filtered);
+        return;
+      }
+      var filteredPosts = filtered.filter(function(p) {
+        return followingIds.includes(p.author_id) || p.author_id === currentUser.id;
+      });
+      renderFilteredPosts(filteredPosts);
       return;
     }
     
@@ -1474,7 +1606,7 @@
     }
   }
 
-  // ---------- SHOW REACTION USERS (FIXED) ----------
+  // ---------- SHOW REACTION USERS ----------
   window.showReactionUsers = function(postId, type) {
     var reactionData = window._reactionData && window._reactionData[postId];
     if (!reactionData) {
@@ -1495,27 +1627,20 @@
       if (!user) return '';
       var avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
       return '<div class="reaction-user-item">' +
-        '<img class="reaction-user-avatar" src="' + avatar + '" alt="' + user.username + '" onclick="showProfile(\'' + user.id + '\'); closeReactionModal();">' +
-        '<span class="reaction-user-username" onclick="showProfile(\'' + user.id + '\'); closeReactionModal();">' + user.username + '</span>' +
+        '<img class="reaction-user-avatar" src="' + avatar + '" alt="' + user.username + '" onclick="showProfile(\'' + user.id + '\'); closeReactionUsersModal.click();">' +
+        '<span class="reaction-user-username" onclick="showProfile(\'' + user.id + '\'); closeReactionUsersModal.click();">' + user.username + '</span>' +
         '</div>';
     }).join('');
     
     reactionUsersModal.classList.add('show');
   };
 
-  // Fixed: Using a different function name to avoid duplicate
-  function closeReactionModal() {
-    reactionUsersModal.classList.remove('show');
-  }
-
   closeReactionUsersModal.addEventListener('click', function() {
     reactionUsersModal.classList.remove('show');
   });
-
+  
   reactionUsersModal.addEventListener('click', function(e) {
-    if (e.target === reactionUsersModal) {
-      reactionUsersModal.classList.remove('show');
-    }
+    if (e.target === reactionUsersModal) reactionUsersModal.classList.remove('show');
   });
 
   // ---------- COMMENTS ----------
@@ -1606,58 +1731,52 @@
     }
   }
 
-  // ---------- FOLLOW/UNFOLLOW ----------
-  window.toggleFollow = async function(userId) {
-    if (!currentUser) { showAuthModal(); return; }
-    if (userId === currentUser.id) return;
+  // ---------- SUGGESTIONS ----------
+  async function loadSuggestions() {
+    if (!currentUser) {
+      suggestionsBox.style.display = 'none';
+      return;
+    }
     
     try {
-      var { data: existing } = await supabase
-        .from('followers')
-        .select('id')
-        .eq('follower_id', currentUser.id)
-        .eq('following_id', userId)
-        .maybeSingle();
+      var followingIds = window._followingCache || [];
       
-      if (existing) {
-        await supabase.from('followers').delete().eq('id', existing.id);
-      } else {
-        await supabase.from('followers').insert([{
-          follower_id: currentUser.id,
-          following_id: userId
-        }]);
+      var suggestions = [];
+      for (var i = 0; i < allUsers.length; i++) {
+        var u = allUsers[i];
+        if (u.id !== currentUser.id && !followingIds.includes(u.id)) {
+          suggestions.push(u);
+        }
+      }
+      suggestions = suggestions.slice(0, 5);
+      
+      if (suggestions.length === 0) {
+        suggestionsBox.style.display = 'none';
+        return;
       }
       
-      if (currentProfileUserId) {
-        await showProfile(currentProfileUserId);
+      suggestionsBox.style.display = 'block';
+      var html = '';
+      for (var j = 0; j < suggestions.length; j++) {
+        var user = suggestions[j];
+        var avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
+        html += '<div class="suggestion-item">';
+        html += '<div class="suggestion-user" onclick="showProfile(\'' + user.id + '\')">';
+        html += '<img class="suggestion-avatar" src="' + avatar + '" alt="' + user.username + '">';
+        html += '<span class="suggestion-username">' + user.username + '</span>';
+        html += '</div>';
+        html += '<button class="btn btn-follow btn-sm" onclick="toggleFollow(\'' + user.id + '\')"><i class="fas fa-user-plus"></i> Follow</button>';
+        html += '</div>';
       }
-      await loadSuggestions();
-      filterPosts();
-      if (searchResults.classList.contains('show')) {
-        performSearch();
-      }
+      suggestionsList.innerHTML = html;
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error loading suggestions:', error);
     }
-  };
-
-  async function isFollowing(userId) {
-    if (!currentUser || userId === currentUser.id) return false;
-    try {
-      var { data } = await supabase
-        .from('followers')
-        .select('id')
-        .eq('follower_id', currentUser.id)
-        .eq('following_id', userId)
-        .maybeSingle();
-      return !!data;
-    } catch { return false; }
   }
 
   // ---------- SHOW FOLLOWERS/FOLLOWING LIST ----------
   window.showUserList = async function(type) {
     if (!currentProfileUserId) return;
-    currentUserListType = type;
     
     var title = type === 'followers' ? 'Followers' : 'Following';
     userListTitle.innerHTML = '<i class="fas fa-users"></i> ' + title;
@@ -1693,7 +1812,7 @@
         var user = type === 'followers' ? item.users_followers_follower_id_fkey : item.users_followers_following_id_fkey;
         if (!user) continue;
         var avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
-        var isFollow = await isFollowing(user.id);
+        var isFollow = window._followingCache.includes(user.id);
         html += '<div class="user-list-item">';
         html += '<div class="user-list-user" onclick="showProfile(\'' + user.id + '\'); userListModal.classList.remove(\'show\');">';
         html += '<img class="user-list-avatar" src="' + avatar + '" alt="' + user.username + '">';
@@ -1714,145 +1833,6 @@
   closeUserListModal.addEventListener('click', function() { userListModal.classList.remove('show'); });
   userListModal.addEventListener('click', function(e) {
     if (e.target === userListModal) userListModal.classList.remove('show');
-  });
-
-  // ---------- SUGGESTIONS ----------
-  async function loadSuggestions() {
-    if (!currentUser) {
-      suggestionsBox.style.display = 'none';
-      return;
-    }
-    
-    try {
-      var { data: following } = await supabase
-        .from('followers')
-        .select('following_id')
-        .eq('follower_id', currentUser.id);
-      
-      var followingIds = (following || []).map(function(f) { return f.following_id; });
-      
-      var suggestions = [];
-      for (var i = 0; i < allUsers.length; i++) {
-        var u = allUsers[i];
-        if (u.id !== currentUser.id && !followingIds.includes(u.id)) {
-          suggestions.push(u);
-        }
-      }
-      suggestions = suggestions.slice(0, 5);
-      
-      if (suggestions.length === 0) {
-        suggestionsBox.style.display = 'none';
-        return;
-      }
-      
-      suggestionsBox.style.display = 'block';
-      var html = '';
-      for (var j = 0; j < suggestions.length; j++) {
-        var user = suggestions[j];
-        var avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=64';
-        html += '<div class="suggestion-item">';
-        html += '<div class="suggestion-user" onclick="showProfile(\'' + user.id + '\')">';
-        html += '<img class="suggestion-avatar" src="' + avatar + '" alt="' + user.username + '">';
-        html += '<span class="suggestion-username">' + user.username + '</span>';
-        html += '</div>';
-        html += '<button class="btn btn-follow btn-sm" onclick="toggleFollow(\'' + user.id + '\')"><i class="fas fa-user-plus"></i> Follow</button>';
-        html += '</div>';
-      }
-      suggestionsList.innerHTML = html;
-    } catch (error) {
-      console.error('Error loading suggestions:', error);
-    }
-  }
-
-  // ---------- PROFILE ----------
-  userDisplay.addEventListener('click', function() { showProfile(currentUser?.id); });
-
-  window.showProfile = async function(userId) {
-    if (!userId) return;
-    currentProfileUserId = userId;
-    
-    try {
-      var { data: user, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (error) throw error;
-      
-      profileAvatar.src = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=3b82f6&color=fff&size=128';
-      profileUsername.textContent = user.username;
-      profileBio.textContent = user.bio || 'No bio yet';
-      
-      var { count: postCount } = await supabase
-        .from('posts')
-        .select('id', { count: 'exact' })
-        .eq('author_id', userId);
-      profilePostCount.textContent = postCount || 0;
-      
-      var { count: followersCount } = await supabase
-        .from('followers')
-        .select('id', { count: 'exact' })
-        .eq('following_id', userId);
-      profileFollowersCount.textContent = followersCount || 0;
-      
-      var { count: followingCount } = await supabase
-        .from('followers')
-        .select('id', { count: 'exact' })
-        .eq('follower_id', userId);
-      profileFollowingCount.textContent = followingCount || 0;
-      
-      var isOwn = currentUser && currentUser.id === userId;
-      var isFollow = await isFollowing(userId);
-      
-      if (isOwn) {
-        profileFollowBtn.innerHTML = '';
-      } else {
-        profileFollowBtn.innerHTML = '<button class="btn ' + (isFollow ? 'btn-unfollow' : 'btn-follow') + '" onclick="toggleFollow(\'' + userId + '\')"><i class="fas ' + (isFollow ? 'fa-user-minus' : 'fa-user-plus') + '"></i> ' + (isFollow ? 'Unfollow' : 'Follow') + '</button>';
-      }
-      
-      profileEditBtn.style.display = isOwn ? 'inline-flex' : 'none';
-      
-      profileModal.classList.add('show');
-    } catch (error) {
-      alert('Error loading profile: ' + error.message);
-    }
-  };
-
-  window.filterByUser = function(userId) {
-    profileModal.classList.remove('show');
-    var filtered = allPosts.filter(function(p) { return p.author_id === userId; });
-    renderPosts(filtered);
-    feedNavBtns.forEach(function(b) { b.classList.remove('active'); });
-    document.querySelector('.feed-nav-btn[data-filter="global"]')?.classList.add('active');
-    currentFilter = 'global';
-  };
-
-  closeProfileModal.addEventListener('click', function() { profileModal.classList.remove('show'); });
-  profileModal.addEventListener('click', function(e) {
-    if (e.target === profileModal) profileModal.classList.remove('show');
-  });
-
-  profileQRBtn.addEventListener('click', function() {
-    if (currentProfileUserId) {
-      var user = allUsers.find(function(u) { return u.id === currentProfileUserId; });
-      showQR('profile', currentProfileUserId, (user?.username || 'User') + "'s profile");
-      profileModal.classList.remove('show');
-    }
-  });
-
-  profileEditBtn.addEventListener('click', function() {
-    var newBio = prompt('Edit your bio:', currentUser?.bio || '');
-    if (newBio !== null && currentUser) {
-      supabase.from('users')
-        .update({ bio: newBio })
-        .eq('id', currentUser.id)
-        .then(function() {
-          currentUser.bio = newBio;
-          localStorage.setItem('currentUser', JSON.stringify(currentUser));
-          showProfile(currentUser.id);
-        });
-    }
   });
 
   // ---------- POST OPERATIONS ----------
@@ -2124,6 +2104,7 @@
       try {
         currentUser = JSON.parse(savedUser);
         updateUI();
+        updateFollowingCache();
         loadAllData();
       } catch(e) { localStorage.removeItem('currentUser'); }
     } else {
@@ -2140,9 +2121,8 @@
     });
 
     console.log('🚀 Secret Social Network Loaded');
-    console.log('👤 Everyone must sign up to post!');
-    console.log('🔍 Search for users using the search bar');
-    console.log('👥 Click on followers/following counts to see lists');
+    console.log('🔍 Search: Type to see autocomplete suggestions');
+    console.log('👥 Click on search results to view profile & posts');
     console.log('❤️ Click on reaction counts to see who reacted');
   }
 
