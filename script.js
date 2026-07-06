@@ -1,5 +1,5 @@
 // =============================================
-// COMPLETE JAVASCRIPT - 3-FILE VERSION
+// COMPLETE JAVASCRIPT - FIXED EDIT POST
 // =============================================
 
 (function() {
@@ -977,27 +977,71 @@
     return '';
   }
 
-  // ---------- POST OPERATIONS ----------
+  // ---------- POST OPERATIONS (FIXED) ----------
   window.editPost = function(postId) {
-    const post = allPosts.find(function(p) { return p.id === postId; });
-    if (!post || post.author_id !== currentUser?.id) return;
+    if (!currentUser) { showAuthModal(); return; }
     
+    // Find post in allPosts (works for both main feed and profile)
+    const post = allPosts.find(function(p) { return p.id === postId; });
+    
+    if (!post) {
+      alert('Post not found. Please refresh and try again.');
+      return;
+    }
+    
+    // Check if current user is the author
+    if (post.author_id !== currentUser.id) {
+      alert('You can only edit your own posts.');
+      return;
+    }
+    
+    // Populate the edit form
     editingPostId = postId;
     postTitleInput.value = post.title || '';
     quill.root.innerHTML = post.content_html || '';
+    
+    // Show create area
     createArea.classList.add('show');
     createArea.scrollIntoView({ behavior: 'smooth' });
     createPostToggle.innerHTML = '<i class="fas fa-times"></i> Close';
     
+    // Set the post type
     if (post.media_type) {
       const btn = document.querySelector('.post-option-btn[data-type="' + post.media_type + '"]');
-      if (btn) btn.click();
+      if (btn) {
+        postOptionBtns.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        selectedPostType = post.media_type;
+        updatePostTypeUI(selectedPostType);
+      }
+    }
+    
+    // If there's media data, show it
+    if (post.media_data) {
+      if (post.media_type === 'image' || post.media_type === 'gif') {
+        filePreview.src = post.media_data;
+        filePreview.classList.add('show');
+        uploadedFileDataURL = post.media_data;
+      } else if (post.media_type === 'spotify') {
+        spotifyInput.value = post.media_data;
+      }
     }
   };
 
   window.deletePost = async function(postId) {
+    if (!currentUser) { showAuthModal(); return; }
+    
     const post = allPosts.find(function(p) { return p.id === postId; });
-    if (!post || post.author_id !== currentUser?.id) return;
+    if (!post) {
+      alert('Post not found.');
+      return;
+    }
+    
+    if (post.author_id !== currentUser.id) {
+      alert('You can only delete your own posts.');
+      return;
+    }
+    
     if (!confirm('Delete this post permanently?')) return;
     
     try {
