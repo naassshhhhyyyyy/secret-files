@@ -910,7 +910,7 @@
 
 <script>
 // =============================================
-// COMPLETE JAVASCRIPT - WITH AUTOCOMPLETE SEARCH
+// COMPLETE JAVASCRIPT - WITH FIXED CLOSE BUTTON
 // =============================================
 
 (function() {
@@ -1269,8 +1269,7 @@
     }
   });
 
-  // ---------- OVERRIDE TOGGLE FOLLOW TO UPDATE CACHE ----------
-  const originalToggleFollow = window.toggleFollow;
+  // ---------- TOGGLE FOLLOW ----------
   window.toggleFollow = async function(userId) {
     if (!currentUser) { showAuthModal(); return; }
     if (userId === currentUser.id) return;
@@ -1307,8 +1306,25 @@
     }
   };
 
-  // ---------- OVERRIDE SHOW PROFILE TO FILTER POSTS ----------
-  const originalShowProfile = window.showProfile;
+  // ---------- PROFILE MODAL - FIXED CLOSE BUTTON ----------
+  // Make sure close button works properly
+  closeProfileModal.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    profileModal.classList.remove('show');
+    // Reset posts feed to normal after closing
+    filterPosts();
+  });
+
+  // Also close when clicking outside the modal
+  profileModal.addEventListener('click', function(e) {
+    if (e.target === profileModal) {
+      profileModal.classList.remove('show');
+      filterPosts();
+    }
+  });
+
+  // Override showProfile to properly handle closing
   window.showProfile = async function(userId) {
     if (!userId) return;
     currentProfileUserId = userId;
@@ -1355,6 +1371,7 @@
       
       profileEditBtn.style.display = isOwn ? 'inline-flex' : 'none';
       
+      // Show modal
       profileModal.classList.add('show');
       
       // Filter posts by this user
@@ -1364,6 +1381,16 @@
     } catch (error) {
       alert('Error loading profile: ' + error.message);
     }
+  };
+
+  window.filterByUser = function(userId) {
+    profileModal.classList.remove('show');
+    var filtered = allPosts.filter(function(p) { return p.author_id === userId; });
+    renderPosts(filtered);
+    feedNavBtns.forEach(function(b) { b.classList.remove('active'); });
+    var globalBtn = document.querySelector('.feed-nav-btn[data-filter="global"]');
+    if (globalBtn) globalBtn.classList.add('active');
+    currentFilter = 'global';
   };
 
   // ---------- LOAD POSTS ----------
