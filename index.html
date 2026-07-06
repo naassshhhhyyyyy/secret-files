@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>🔐 Secret Files</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * {
@@ -133,6 +132,16 @@
       color: white;
     }
     .btn-success:hover { background: #16a34a; }
+    .btn-purple {
+      background: #8b5cf6;
+      color: white;
+    }
+    .btn-purple:hover { background: #7c3aed; }
+    .btn-pink {
+      background: #ec4899;
+      color: white;
+    }
+    .btn-pink:hover { background: #db2777; }
 
     .status-badge {
       display: inline-block;
@@ -166,7 +175,7 @@
       background: rgba(25, 30, 38, 0.9);
       padding: 2.5rem 2.2rem;
       border-radius: 48px;
-      max-width: 400px;
+      max-width: 420px;
       width: 100%;
       border: 1px solid rgba(255,255,255,0.06);
       box-shadow: 0 30px 60px rgba(0,0,0,0.6);
@@ -188,7 +197,7 @@
       background: rgba(0,0,0,0.3);
       color: #fff;
       font-size: 1.1rem;
-      margin-bottom: 1.2rem;
+      margin-bottom: 0.8rem;
       outline: 1px solid rgba(255,255,255,0.1);
       transition: 0.2s;
     }
@@ -200,11 +209,22 @@
       justify-content: center;
       font-size: 1.1rem;
       padding: 0.8rem;
+      margin-top: 0.5rem;
     }
     .wrong-pass {
       color: #f87171;
       margin-top: 0.8rem;
       font-size: 0.9rem;
+    }
+    .password-hint {
+      font-size: 0.8rem;
+      opacity: 0.5;
+      margin-top: 0.5rem;
+    }
+    .password-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin: 1.2rem 0;
     }
 
     .theme-selector {
@@ -255,7 +275,7 @@
       margin: 0.5rem 0 0.8rem 0;
       white-space: pre-wrap;
     }
-    .post-content img, .post-content iframe {
+    .post-content img, .post-content video {
       max-width: 100%;
       border-radius: 20px;
       margin: 0.5rem 0;
@@ -265,6 +285,9 @@
       height: 80px;
       border: none;
       border-radius: 20px;
+    }
+    .post-media {
+      margin: 0.5rem 0;
     }
     .post-actions {
       display: flex;
@@ -280,6 +303,13 @@
       font-size: 0.7rem;
       opacity: 0.5;
       margin-top: 0.4rem;
+    }
+    .post-type-badge {
+      font-size: 0.6rem;
+      padding: 0.15rem 0.6rem;
+      border-radius: 20px;
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
     }
 
     .create-post-area {
@@ -306,13 +336,110 @@
     .create-post-area textarea:focus {
       outline: 2px solid #3b82f6;
     }
-    .create-post-area .btn {
+
+    .post-options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.6rem;
+      margin: 0.8rem 0;
+    }
+    .post-option-btn {
+      padding: 0.6rem 0.8rem;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: inherit;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+    .post-option-btn:hover {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.1);
+    }
+    .post-option-btn.active {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.2);
+    }
+    .post-option-btn i {
+      font-size: 1rem;
+    }
+
+    .file-input-wrapper {
+      margin: 0.5rem 0;
+    }
+    .file-input-wrapper input[type="file"] {
+      display: none;
+    }
+    .file-input-wrapper .file-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 16px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px dashed rgba(59, 130, 246, 0.3);
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.9rem;
+    }
+    .file-input-wrapper .file-label:hover {
+      background: rgba(59, 130, 246, 0.25);
+    }
+    .file-preview {
+      max-width: 200px;
+      max-height: 150px;
+      border-radius: 12px;
+      margin: 0.5rem 0;
+      display: none;
+    }
+    .file-preview.show {
+      display: block;
+    }
+
+    .spotify-input-wrapper {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 0.5rem 0;
+    }
+    .spotify-input-wrapper input {
+      flex: 1;
+      padding: 0.6rem 1rem;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.2);
+      color: inherit;
+      font-size: 0.9rem;
+    }
+    .spotify-input-wrapper input:focus {
+      outline: 2px solid #3b82f6;
+    }
+
+    .create-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
       margin-top: 0.8rem;
     }
+
     .media-hint {
       font-size: 0.8rem;
       opacity: 0.6;
       margin: 0.4rem 0 0.2rem;
+    }
+
+    .visitor-badge {
+      display: inline-block;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      background: rgba(139, 92, 246, 0.2);
+      color: #a78bfa;
     }
 
     @media (max-width: 600px) {
@@ -321,10 +448,12 @@
       .logo { font-size: 1.6rem; justify-content: center; }
       .toolbar-actions { justify-content: center; }
       .post-item { padding: 1.2rem; }
+      .post-options-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 420px) {
       .password-card { padding: 2rem 1.2rem; }
       .btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+      .post-options-grid { grid-template-columns: 1fr 1fr; }
     }
 
     * {
@@ -358,7 +487,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Error message styling */
     .error-message {
       background: rgba(239, 68, 68, 0.15);
       border: 1px solid rgba(239, 68, 68, 0.3);
@@ -375,8 +503,16 @@
   <div id="passwordOverlay">
     <div class="password-card">
       <h2><i class="fas fa-lock"></i> Secret Files</h2>
+      
       <input type="password" id="passwordInput" placeholder="Enter password" autofocus>
       <button class="btn btn-primary" id="unlockBtn"><i class="fas fa-key"></i> Unlock</button>
+      
+      <hr class="password-divider">
+      
+      <p style="font-size:0.85rem;opacity:0.6;margin-bottom:0.5rem;">
+        <i class="fas fa-info-circle"></i> Admin: full access | Visitor: view only
+      </p>
+      
       <div id="wrongPassMsg" class="wrong-pass"></div>
     </div>
   </div>
@@ -386,6 +522,7 @@
     <div class="top-bar">
       <div class="logo"><i class="fas fa-folder-open"></i> Secret<span style="font-weight:400;">Files</span></div>
       <div class="toolbar-actions">
+        <span id="userRoleBadge" class="visitor-badge"><i class="fas fa-eye"></i> Visitor</span>
         <span id="syncStatus" class="status-badge"><i class="fas fa-sync fa-spin"></i> Connecting</span>
         <div class="theme-selector">
           <span class="theme-dot active" data-theme="dark" style="background:#0b0d10;"></span>
@@ -401,10 +538,56 @@
 
     <!-- Create Post -->
     <div id="createPostArea" class="create-post-area" style="display: none;">
-      <h4 style="margin-bottom:0.5rem;"><i class="fas fa-pen-fancy"></i> New secret</h4>
-      <textarea id="postContentInput" placeholder="Write something… embed image, GIF, Spotify link…"></textarea>
-      <div class="media-hint"><i class="fas fa-info-circle"></i> Paste image URL, Spotify track link, or GIF</div>
-      <button class="btn btn-primary" id="createPostBtn"><i class="fas fa-plus-circle"></i> Create Post</button>
+      <h4 style="margin-bottom:0.5rem;"><i class="fas fa-pen-fancy"></i> New Secret Post</h4>
+      
+      <textarea id="postContentInput" placeholder="Write your message here..."></textarea>
+      
+      <div class="post-options-grid" id="postOptionsGrid">
+        <button class="post-option-btn active" data-type="text">
+          <i class="fas fa-font"></i> Text
+        </button>
+        <button class="post-option-btn" data-type="image">
+          <i class="fas fa-image"></i> Image
+        </button>
+        <button class="post-option-btn" data-type="gif">
+          <i class="fas fa-film"></i> GIF
+        </button>
+        <button class="post-option-btn" data-type="spotify">
+          <i class="fab fa-spotify"></i> Spotify
+        </button>
+        <button class="post-option-btn" data-type="text-image">
+          <i class="fas fa-font"></i>+<i class="fas fa-image"></i> Text+Image
+        </button>
+        <button class="post-option-btn" data-type="text-gif">
+          <i class="fas fa-font"></i>+<i class="fas fa-film"></i> Text+GIF
+        </button>
+        <button class="post-option-btn" data-type="text-spotify">
+          <i class="fas fa-font"></i>+<i class="fab fa-spotify"></i> Text+Spotify
+        </button>
+      </div>
+      
+      <!-- File Upload -->
+      <div class="file-input-wrapper" id="fileUploadWrapper" style="display:none;">
+        <label class="file-label" for="fileInput">
+          <i class="fas fa-upload"></i> Choose File
+        </label>
+        <input type="file" id="fileInput" accept="image/*,.gif">
+        <br>
+        <img id="filePreview" class="file-preview" alt="Preview">
+      </div>
+      
+      <!-- Spotify Input -->
+      <div class="spotify-input-wrapper" id="spotifyWrapper" style="display:none;">
+        <i class="fab fa-spotify" style="color:#1DB954;"></i>
+        <input type="text" id="spotifyInput" placeholder="Paste Spotify URL (track, playlist, episode)">
+      </div>
+      
+      <div class="media-hint"><i class="fas fa-info-circle"></i> Select a post type above and add your content</div>
+      
+      <div class="create-actions">
+        <button class="btn btn-primary" id="createPostBtn"><i class="fas fa-plus-circle"></i> Create Post</button>
+        <button class="btn btn-outline" id="clearPostBtn"><i class="fas fa-times"></i> Clear</button>
+      </div>
     </div>
 
     <!-- Posts feed -->
@@ -417,448 +600,520 @@
   </div>
 
   <script>
-  (function() {
-    // ---------- CONFIG ----------
-    const OWNER_PASSWORD = 'secret2026';
-    let isOwner = false;
-    let posts = [];
-
-    // 🔥 YOUR SUPABASE CREDENTIALS
-    const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcmZoamJlaGloZWhiYWRvYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNzgyNTEsImV4cCI6MjA5ODg1NDI1MX0.j541e7W56nVCESK_nsVUsGjAv2mOHGb27wwACJZKlBE';
-
-    // ✅ FIXED: Initialize Supabase properly
-    let supabase;
-    try {
-      // Try different ways to load Supabase
-      if (typeof supabase !== 'undefined') {
-        supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      } else if (typeof window.supabase !== 'undefined') {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      } else {
-        throw new Error('Supabase SDK not loaded. Check your internet connection.');
-      }
-      console.log('✅ Supabase initialized successfully!');
-    } catch (error) {
-      console.error('❌ Failed to initialize Supabase:', error);
-      alert('Failed to connect to Supabase. Please refresh and try again.');
-    }
-
-    // DOM refs
-    const overlay = document.getElementById('passwordOverlay');
-    const passInput = document.getElementById('passwordInput');
-    const unlockBtn = document.getElementById('unlockBtn');
-    const wrongMsg = document.getElementById('wrongPassMsg');
-    const lockBtn = document.getElementById('lockBtn');
-    const postsFeed = document.getElementById('postsFeed');
-    const createArea = document.getElementById('createPostArea');
-    const contentInput = document.getElementById('postContentInput');
-    const createBtn = document.getElementById('createPostBtn');
-    const themeDots = document.querySelectorAll('.theme-dot');
-    const syncStatus = document.getElementById('syncStatus');
-
-    // ---------- HELPER FUNCTIONS ----------
-    function updateStatus(status) {
-      if (!syncStatus) return;
+    (function() {
+      // ---------- CONFIG ----------
+      const ADMIN_PASSWORD = 'secret2026';
+      const VISITOR_PASSWORD = 'visitor123'; // Change this!
       
-      const icon = status === 'Loading' ? 'fa-sync fa-spin' :
-                  status === 'Saving' ? 'fa-upload fa-spin' :
-                  status === 'Synced' ? 'fa-check-circle' :
-                  status === 'Error' ? 'fa-exclamation-circle' :
-                  status === 'Offline' ? 'fa-wifi' : 'fa-sync';
-                  
-      const className = status === 'Synced' ? 'synced' :
-                       status === 'Error' ? 'error' :
-                       status === 'Offline' ? 'offline' : '';
-                       
-      syncStatus.className = `status-badge ${className}`;
-      syncStatus.innerHTML = `<i class="fas ${icon}"></i> ${status}`;
-    }
+      let userRole = null; // 'admin' or 'visitor'
+      let posts = [];
+      let selectedPostType = 'text';
+      let uploadedFile = null;
+      let uploadedFileDataURL = null;
 
-    // ---------- SUPABASE CRUD OPERATIONS ----------
-    
-    // Fetch all posts
-    async function fetchPosts() {
+      // Supabase Config
+      const SUPABASE_URL = 'https://pdrfhjbehihehbadoaty.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkcmZoamJlaGloZWhiYWRvYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNzgyNTEsImV4cCI6MjA5ODg1NDI1MX0.j541e7W56nVCESK_nsVUsGjAv2mOHGb27wwACJZKlBE';
+
+      // Initialize Supabase
+      let supabase;
       try {
-        updateStatus('Loading');
-        
-        console.log('📡 Fetching posts from Supabase...');
-        
-        if (!supabase) {
-          throw new Error('Supabase is not initialized. Please refresh the page.');
+        if (typeof supabase !== 'undefined') {
+          supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } else if (typeof window.supabase !== 'undefined') {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } else {
+          throw new Error('Supabase SDK not loaded.');
         }
-        
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('❌ Supabase Error:', error);
-          throw error;
-        }
-        
-        posts = data || [];
-        console.log(`✅ Loaded ${posts.length} posts`);
-        
-        updateStatus('Synced');
-        
-        // Backup to localStorage
-        localStorage.setItem('secret_posts_backup', JSON.stringify(posts));
-        
-        return posts;
+        console.log('✅ Supabase initialized');
       } catch (error) {
-        console.error('❌ Error fetching posts:', error);
-        updateStatus('Error');
+        console.error('❌ Supabase init error:', error);
+      }
+
+      // DOM refs
+      const overlay = document.getElementById('passwordOverlay');
+      const passInput = document.getElementById('passwordInput');
+      const unlockBtn = document.getElementById('unlockBtn');
+      const wrongMsg = document.getElementById('wrongPassMsg');
+      const lockBtn = document.getElementById('lockBtn');
+      const postsFeed = document.getElementById('postsFeed');
+      const createArea = document.getElementById('createPostArea');
+      const contentInput = document.getElementById('postContentInput');
+      const createBtn = document.getElementById('createPostBtn');
+      const clearBtn = document.getElementById('clearPostBtn');
+      const themeDots = document.querySelectorAll('.theme-dot');
+      const syncStatus = document.getElementById('syncStatus');
+      const userRoleBadge = document.getElementById('userRoleBadge');
+      
+      const fileInput = document.getElementById('fileInput');
+      const filePreview = document.getElementById('filePreview');
+      const fileUploadWrapper = document.getElementById('fileUploadWrapper');
+      const spotifyWrapper = document.getElementById('spotifyWrapper');
+      const spotifyInput = document.getElementById('spotifyInput');
+      const postOptionBtns = document.querySelectorAll('.post-option-btn');
+
+      // ---------- POST TYPE SELECTION ----------
+      postOptionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          postOptionBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          selectedPostType = this.dataset.type;
+          updatePostTypeUI(selectedPostType);
+        });
+      });
+
+      function updatePostTypeUI(type) {
+        // Hide all extras
+        fileUploadWrapper.style.display = 'none';
+        spotifyWrapper.style.display = 'none';
+        filePreview.classList.remove('show');
+        uploadedFile = null;
+        uploadedFileDataURL = null;
         
-        // Show error in the feed
-        postsFeed.innerHTML = `
-          <div class="error-message">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p><strong>Connection Error</strong></p>
-            <p style="font-size:0.9rem;margin-top:0.5rem;">
-              ${error.message || 'Could not connect to Supabase. Make sure the table "posts" exists and your credentials are correct.'}
-            </p>
-            <p style="font-size:0.8rem;margin-top:0.5rem;opacity:0.7;">
-              💡 Tip: Create the 'posts' table in Supabase SQL Editor
-            </p>
-          </div>
-        `;
+        // Show based on type
+        if (type === 'image' || type === 'text-image') {
+          fileUploadWrapper.style.display = 'block';
+          fileInput.accept = 'image/*';
+        } else if (type === 'gif' || type === 'text-gif') {
+          fileUploadWrapper.style.display = 'block';
+          fileInput.accept = 'image/gif';
+        } else if (type === 'spotify' || type === 'text-spotify') {
+          spotifyWrapper.style.display = 'flex';
+        }
         
-        // Fallback to localStorage
-        const localData = localStorage.getItem('secret_posts_backup');
-        if (localData) {
-          try {
+        // Show/hide textarea
+        const hasText = ['text', 'text-image', 'text-gif', 'text-spotify'].includes(type);
+        contentInput.style.display = hasText ? 'block' : 'none';
+        if (!hasText) contentInput.value = '';
+      }
+
+      // File upload
+      fileInput.addEventListener('change', function(e) {
+        const file = this.files[0];
+        if (file) {
+          uploadedFile = file;
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            uploadedFileDataURL = event.target.result;
+            filePreview.src = event.target.result;
+            filePreview.classList.add('show');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Clear post
+      clearBtn.addEventListener('click', function() {
+        contentInput.value = '';
+        fileInput.value = '';
+        filePreview.classList.remove('show');
+        uploadedFile = null;
+        uploadedFileDataURL = null;
+        spotifyInput.value = '';
+      });
+
+      // ---------- HELPER FUNCTIONS ----------
+      function updateStatus(status) {
+        if (!syncStatus) return;
+        const icon = status === 'Loading' ? 'fa-sync fa-spin' :
+                    status === 'Saving' ? 'fa-upload fa-spin' :
+                    status === 'Synced' ? 'fa-check-circle' :
+                    status === 'Error' ? 'fa-exclamation-circle' :
+                    status === 'Offline' ? 'fa-wifi' : 'fa-sync';
+        const className = status === 'Synced' ? 'synced' :
+                         status === 'Error' ? 'error' :
+                         status === 'Offline' ? 'offline' : '';
+        syncStatus.className = `status-badge ${className}`;
+        syncStatus.innerHTML = `<i class="fas ${icon}"></i> ${status}`;
+      }
+
+      function updateUserRoleBadge(role) {
+        if (!userRoleBadge) return;
+        if (role === 'admin') {
+          userRoleBadge.innerHTML = '<i class="fas fa-crown"></i> Admin';
+          userRoleBadge.style.background = 'rgba(250, 204, 21, 0.2)';
+          userRoleBadge.style.color = '#fbbf24';
+        } else {
+          userRoleBadge.innerHTML = '<i class="fas fa-eye"></i> Visitor';
+          userRoleBadge.style.background = 'rgba(139, 92, 246, 0.2)';
+          userRoleBadge.style.color = '#a78bfa';
+        }
+      }
+
+      // ---------- SUPABASE CRUD ----------
+      async function fetchPosts() {
+        try {
+          updateStatus('Loading');
+          if (!supabase) throw new Error('Supabase not initialized');
+          
+          const { data, error } = await supabase
+            .from('posts')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+          
+          posts = data || [];
+          updateStatus('Synced');
+          localStorage.setItem('secret_posts_backup', JSON.stringify(posts));
+          return posts;
+        } catch (error) {
+          console.error('Error fetching posts:', error);
+          updateStatus('Error');
+          const localData = localStorage.getItem('secret_posts_backup');
+          if (localData) {
             posts = JSON.parse(localData);
             updateStatus('Offline');
             return posts;
-          } catch(e) {}
+          }
+          return [];
         }
-        return [];
       }
-    }
 
-    // Create a new post
-    async function createPost(content, timestamp) {
-      try {
-        updateStatus('Saving');
+      async function createPost(content, mediaData, mediaType) {
+        try {
+          updateStatus('Saving');
+          if (!supabase) throw new Error('Supabase not initialized');
+          
+          const postData = {
+            content: content || '',
+            timestamp: new Date().toISOString(),
+            media_type: mediaType || 'text',
+            media_data: mediaData || ''
+          };
+          
+          const { data, error } = await supabase
+            .from('posts')
+            .insert([postData])
+            .select();
+
+          if (error) throw error;
+          
+          updateStatus('Synced');
+          return data[0];
+        } catch (error) {
+          console.error('Error creating post:', error);
+          updateStatus('Error');
+          alert(`⚠️ Could not save: ${error.message}`);
+          return null;
+        }
+      }
+
+      async function updatePost(id, content, mediaData, mediaType) {
+        try {
+          updateStatus('Saving');
+          if (!supabase) throw new Error('Supabase not initialized');
+          
+          const updateData = {
+            content: content || '',
+            timestamp: new Date().toISOString(),
+            media_type: mediaType || 'text',
+            media_data: mediaData || ''
+          };
+          
+          const { data, error } = await supabase
+            .from('posts')
+            .update(updateData)
+            .eq('id', id)
+            .select();
+
+          if (error) throw error;
+          
+          updateStatus('Synced');
+          return data[0];
+        } catch (error) {
+          console.error('Error updating post:', error);
+          updateStatus('Error');
+          alert(`⚠️ Could not update: ${error.message}`);
+          return null;
+        }
+      }
+
+      async function deletePost(id) {
+        try {
+          updateStatus('Saving');
+          if (!supabase) throw new Error('Supabase not initialized');
+          
+          const { error } = await supabase
+            .from('posts')
+            .delete()
+            .eq('id', id);
+
+          if (error) throw error;
+          
+          updateStatus('Synced');
+          return true;
+        } catch (error) {
+          console.error('Error deleting post:', error);
+          updateStatus('Error');
+          alert(`⚠️ Could not delete: ${error.message}`);
+          return false;
+        }
+      }
+
+      // ---------- FORMAT CONTENT ----------
+      function formatPost(post) {
+        let html = '';
         
-        console.log('📝 Creating new post...');
-        
-        if (!supabase) {
-          throw new Error('Supabase is not initialized. Please refresh the page.');
+        // Text content
+        if (post.content) {
+          html += `<div>${post.content.replace(/\n/g, '<br>')}</div>`;
         }
         
-        const { data, error } = await supabase
-          .from('posts')
-          .insert([
-            { 
-              content: content,
-              timestamp: timestamp
+        // Media
+        if (post.media_data) {
+          const mediaType = post.media_type || '';
+          
+          if (mediaType.includes('image') || mediaType === 'image') {
+            html += `<div class="post-media"><img src="${post.media_data}" alt="Image" loading="lazy"></div>`;
+          } else if (mediaType.includes('gif') || mediaType === 'gif') {
+            html += `<div class="post-media"><img src="${post.media_data}" alt="GIF" loading="lazy"></div>`;
+          } else if (mediaType.includes('spotify') || mediaType === 'spotify') {
+            const match = post.media_data.match(/spotify\.com\/(track|playlist|episode)\/([a-zA-Z0-9]+)/);
+            if (match) {
+              html += `<div class="post-media"><iframe src="https://open.spotify.com/embed/${match[1]}/${match[2]}" allow="encrypted-media"></iframe></div>`;
             }
-          ])
-          .select();
-
-        if (error) {
-          console.error('❌ Create Error:', error);
-          throw error;
-        }
-        
-        console.log('✅ Post created successfully');
-        updateStatus('Synced');
-        return data[0];
-      } catch (error) {
-        console.error('❌ Error creating post:', error);
-        updateStatus('Error');
-        alert(`⚠️ Could not save to Supabase: ${error.message || 'Please try again.'}`);
-        return null;
-      }
-    }
-
-    // Update a post
-    async function updatePost(id, content, timestamp) {
-      try {
-        updateStatus('Saving');
-        
-        if (!supabase) {
-          throw new Error('Supabase is not initialized.');
-        }
-        
-        const { data, error } = await supabase
-          .from('posts')
-          .update({ 
-            content: content,
-            timestamp: timestamp
-          })
-          .eq('id', id)
-          .select();
-
-        if (error) throw error;
-        
-        updateStatus('Synced');
-        return data[0];
-      } catch (error) {
-        console.error('❌ Error updating post:', error);
-        updateStatus('Error');
-        alert(`⚠️ Could not update post: ${error.message}`);
-        return null;
-      }
-    }
-
-    // Delete a post
-    async function deletePost(id) {
-      try {
-        updateStatus('Saving');
-        
-        if (!supabase) {
-          throw new Error('Supabase is not initialized.');
-        }
-        
-        const { error } = await supabase
-          .from('posts')
-          .delete()
-          .eq('id', id);
-
-        if (error) throw error;
-        
-        updateStatus('Synced');
-        return true;
-      } catch (error) {
-        console.error('❌ Error deleting post:', error);
-        updateStatus('Error');
-        alert(`⚠️ Could not delete post: ${error.message}`);
-        return false;
-      }
-    }
-
-    // ---------- FORMAT CONTENT ----------
-    function formatContent(text) {
-      if (!text) return '';
-      let result = '';
-      const lines = text.split('\n');
-      for (let line of lines) {
-        let trimmed = line.trim();
-        
-        // Check for image URL
-        if (trimmed.match(/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i)) {
-          result += `<img src="${trimmed}" alt="media" loading="lazy" style="max-width:100%;max-height:300px;border-radius:16px;margin:6px 0;" onerror="this.style.display='none'">`;
-        } 
-        // Check for Spotify URL
-        else if (trimmed.includes('spotify.com/track/') || trimmed.includes('spotify.com/playlist/') || trimmed.includes('spotify.com/episode/')) {
-          let match = trimmed.match(/spotify\.com\/(track|playlist|episode)\/([a-zA-Z0-9]+)/);
-          if (match) {
-            const type = match[1];
-            const id = match[2];
-            result += `<iframe src="https://open.spotify.com/embed/${type}/${id}" style="width:100%;height:80px;border-radius:20px;" allow="encrypted-media"></iframe>`;
-          } else {
-            result += `<span>${trimmed}</span>`;
-          }
-        } 
-        // Check for YouTube URL
-        else if (trimmed.includes('youtube.com/watch') || trimmed.includes('youtu.be/')) {
-          let match = trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-          if (match) {
-            result += `<iframe src="https://www.youtube.com/embed/${match[1]}" style="width:100%;height:200px;border-radius:20px;margin:6px 0;" allow="encrypted-media" allowfullscreen></iframe>`;
-          } else {
-            result += `<span>${trimmed}</span>`;
+          } else if (mediaType === 'youtube') {
+            const match = post.media_data.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+            if (match) {
+              html += `<div class="post-media"><iframe src="https://www.youtube.com/embed/${match[1]}" style="height:200px;" allowfullscreen></iframe></div>`;
+            }
           }
         }
-        else {
-          result += `<span>${trimmed}</span>`;
-        }
-        result += '<br>';
-      }
-      return result || text;
-    }
-
-    // ---------- RENDER ----------
-    function renderPosts() {
-      if (!postsFeed) return;
-      
-      if (posts.length === 0) {
-        postsFeed.innerHTML = `
-          <div style="text-align:center;padding:2rem;opacity:0.5;">
-            <i class="fas fa-inbox fa-2x"></i>
-            <p style="margin-top:0.5rem;">No secrets yet. Be the first to create one!</p>
-          </div>
-        `;
-        return;
-      }
-
-      let html = '';
-      posts.forEach((post, index) => {
-        const contentWithMedia = formatContent(post.content);
-        const postId = post.id;
         
-        html += `
-          <div class="post-item" data-id="${postId}">
-            <div class="post-header">
-              <span style="opacity:0.6;font-size:0.8rem;">
-                <i class="far fa-file-alt"></i> #${index+1}
-              </span>
-              <span style="font-size:0.7rem;opacity:0.4;">
-                ${new Date(post.timestamp).toLocaleString()}
-              </span>
+        return html || 'Empty post';
+      }
+
+      // ---------- RENDER ----------
+      function renderPosts() {
+        if (!postsFeed) return;
+        
+        if (posts.length === 0) {
+          postsFeed.innerHTML = `
+            <div style="text-align:center;padding:2rem;opacity:0.5;">
+              <i class="fas fa-inbox fa-2x"></i>
+              <p style="margin-top:0.5rem;">No secrets yet. Be the first to create one!</p>
             </div>
-            <div class="post-content">${contentWithMedia}</div>
-            ${isOwner ? `
-              <div class="post-actions">
-                <button class="btn btn-outline editPostBtn" data-id="${postId}">
-                  <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="btn btn-danger deletePostBtn" data-id="${postId}">
-                  <i class="fas fa-trash"></i> Delete
-                </button>
-              </div>
-            ` : ''}
-            <div class="post-timestamp">${new Date(post.timestamp).toLocaleDateString()}</div>
-          </div>
-        `;
-      });
-      
-      postsFeed.innerHTML = html;
+          `;
+          return;
+        }
 
-      // Attach event listeners for edit/delete (only if owner)
-      if (isOwner) {
-        document.querySelectorAll('.editPostBtn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const id = parseInt(btn.dataset.id);
-            const post = posts.find(p => p.id === id);
-            if (post) {
-              const newContent = prompt('Edit your secret:', post.content);
-              if (newContent !== null && newContent.trim() !== '') {
-                const updated = await updatePost(id, newContent.trim(), new Date().toISOString());
-                if (updated) {
-                  await loadPosts();
+        let html = '';
+        posts.forEach((post, index) => {
+          const isAdmin = userRole === 'admin';
+          const postContent = formatPost(post);
+          const postId = post.id;
+          
+          html += `
+            <div class="post-item" data-id="${postId}">
+              <div class="post-header">
+                <span style="opacity:0.6;font-size:0.8rem;">
+                  <i class="far fa-file-alt"></i> #${index+1}
+                  ${post.media_type ? `<span class="post-type-badge"><i class="fas fa-${post.media_type.includes('image') ? 'image' : post.media_type.includes('gif') ? 'film' : post.media_type.includes('spotify') ? 'music' : 'font'}"></i> ${post.media_type}</span>` : ''}
+                </span>
+                <span style="font-size:0.7rem;opacity:0.4;">
+                  ${new Date(post.timestamp).toLocaleString()}
+                </span>
+              </div>
+              <div class="post-content">${postContent}</div>
+              ${isAdmin ? `
+                <div class="post-actions">
+                  <button class="btn btn-outline editPostBtn" data-id="${postId}">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn btn-danger deletePostBtn" data-id="${postId}">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </div>
+              ` : ''}
+              <div class="post-timestamp">${new Date(post.timestamp).toLocaleDateString()}</div>
+            </div>
+          `;
+        });
+        
+        postsFeed.innerHTML = html;
+
+        if (userRole === 'admin') {
+          document.querySelectorAll('.editPostBtn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const id = parseInt(btn.dataset.id);
+              const post = posts.find(p => p.id === id);
+              if (post) {
+                const newContent = prompt('Edit content:', post.content || '');
+                if (newContent !== null) {
+                  const updated = await updatePost(id, newContent, post.media_data || '', post.media_type || 'text');
+                  if (updated) await loadPosts();
                 }
               }
-            }
+            });
           });
-        });
 
-        document.querySelectorAll('.deletePostBtn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const id = parseInt(btn.dataset.id);
-            if (confirm('Permanently delete this secret?')) {
-              const success = await deletePost(id);
-              if (success) {
-                await loadPosts();
+          document.querySelectorAll('.deletePostBtn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const id = parseInt(btn.dataset.id);
+              if (confirm('Permanently delete this post?')) {
+                const success = await deletePost(id);
+                if (success) await loadPosts();
               }
-            }
+            });
           });
-        });
+        }
       }
-    }
 
-    // ---------- PASSWORD ----------
-    function unlock(password) {
-      if (password === OWNER_PASSWORD) {
-        isOwner = true;
-        overlay.classList.add('hidden');
-        createArea.style.display = 'block';
+      // ---------- CREATE POST ----------
+      async function handleCreatePost() {
+        if (userRole !== 'admin') {
+          alert('Only admin can create posts.');
+          return;
+        }
+        
+        let content = contentInput.value.trim();
+        let mediaData = '';
+        let mediaType = selectedPostType;
+        
+        // Handle file upload
+        if (selectedPostType.includes('image') || selectedPostType === 'image') {
+          if (uploadedFileDataURL) {
+            mediaData = uploadedFileDataURL;
+            mediaType = 'image';
+          } else if (selectedPostType === 'image') {
+            alert('Please select an image file.');
+            return;
+          }
+        }
+        
+        if (selectedPostType.includes('gif') || selectedPostType === 'gif') {
+          if (uploadedFileDataURL) {
+            mediaData = uploadedFileDataURL;
+            mediaType = 'gif';
+          } else if (selectedPostType === 'gif') {
+            alert('Please select a GIF file.');
+            return;
+          }
+        }
+        
+        // Handle Spotify
+        if (selectedPostType.includes('spotify') || selectedPostType === 'spotify') {
+          const spotifyUrl = spotifyInput.value.trim();
+          if (spotifyUrl) {
+            mediaData = spotifyUrl;
+            mediaType = 'spotify';
+          } else if (selectedPostType === 'spotify') {
+            alert('Please enter a Spotify URL.');
+            return;
+          }
+        }
+        
+        // Text-only validation
+        if (selectedPostType === 'text' && !content) {
+          alert('Please write some text.');
+          return;
+        }
+        
+        const newPost = await createPost(content, mediaData, mediaType);
+        if (newPost) {
+          await loadPosts();
+          clearBtn.click();
+        }
+      }
+
+      // ---------- PASSWORD ----------
+      function unlock(password) {
+        if (password === ADMIN_PASSWORD) {
+          userRole = 'admin';
+          overlay.classList.add('hidden');
+          createArea.style.display = 'block';
+          updateUserRoleBadge('admin');
+          wrongMsg.textContent = '';
+          passInput.value = '';
+          loadPosts();
+          return true;
+        } else if (password === VISITOR_PASSWORD) {
+          userRole = 'visitor';
+          overlay.classList.add('hidden');
+          createArea.style.display = 'none';
+          updateUserRoleBadge('visitor');
+          wrongMsg.textContent = '';
+          passInput.value = '';
+          loadPosts();
+          return true;
+        } else {
+          wrongMsg.textContent = '❌ Wrong password. Try again.';
+          passInput.value = '';
+          passInput.focus();
+          return false;
+        }
+      }
+
+      function lock() {
+        userRole = null;
+        overlay.classList.remove('hidden');
+        createArea.style.display = 'none';
+        passInput.value = '';
         wrongMsg.textContent = '';
-        passInput.value = '';
-        loadPosts();
-        return true;
-      } else {
-        wrongMsg.textContent = '❌ Wrong password. Try again.';
-        passInput.value = '';
-        passInput.focus();
-        return false;
+        updateUserRoleBadge('visitor');
+        renderPosts();
       }
-    }
 
-    function lock() {
-      isOwner = false;
+      // ---------- LOAD POSTS ----------
+      async function loadPosts() {
+        await fetchPosts();
+        renderPosts();
+      }
+
+      // ---------- EVENTS ----------
+      unlockBtn.addEventListener('click', () => unlock(passInput.value));
+      passInput.addEventListener('keydown', (e) => { 
+        if (e.key === 'Enter') unlock(passInput.value); 
+      });
+      lockBtn.addEventListener('click', lock);
+      createBtn.addEventListener('click', handleCreatePost);
+
+      // Theme switching
+      themeDots.forEach(dot => {
+        dot.addEventListener('click', function() {
+          const theme = this.dataset.theme;
+          document.body.className = theme;
+          themeDots.forEach(d => d.classList.remove('active'));
+          this.classList.add('active');
+          localStorage.setItem('selected_theme', theme);
+        });
+      });
+
+      const savedTheme = localStorage.getItem('selected_theme') || 'dark';
+      document.body.className = savedTheme;
+      themeDots.forEach(dot => {
+        if (dot.dataset.theme === savedTheme) dot.classList.add('active');
+      });
+
+      // Block context menu & devtools
+      document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
+          e.preventDefault();
+          return false;
+        }
+        if (e.ctrlKey && e.key === 'p') { e.preventDefault(); return false; }
+      });
+
+      // ---------- INIT ----------
       overlay.classList.remove('hidden');
       createArea.style.display = 'none';
-      passInput.value = '';
-      wrongMsg.textContent = '';
-      renderPosts();
-    }
-
-    // ---------- LOAD POSTS ----------
-    async function loadPosts() {
-      await fetchPosts();
-      renderPosts();
-    }
-
-    // ---------- EVENTS ----------
-    unlockBtn.addEventListener('click', () => unlock(passInput.value));
-    passInput.addEventListener('keydown', (e) => { 
-      if (e.key === 'Enter') unlock(passInput.value); 
-    });
-    lockBtn.addEventListener('click', lock);
-
-    createBtn.addEventListener('click', async () => {
-      if (!isOwner) return alert('You are not the owner.');
-      const content = contentInput.value.trim();
-      if (content === '') return alert('Write something first.');
+      updatePostTypeUI('text');
+      setTimeout(() => passInput.focus(), 200);
       
-      const newPost = await createPost(content, new Date().toISOString());
-      if (newPost) {
-        await loadPosts();
-        contentInput.value = '';
+      const localBackup = localStorage.getItem('secret_posts_backup');
+      if (localBackup) {
+        try {
+          posts = JSON.parse(localBackup);
+          renderPosts();
+        } catch(e) {}
       }
-    });
 
-    // Theme switching
-    themeDots.forEach(dot => {
-      dot.addEventListener('click', function() {
-        const theme = this.dataset.theme;
-        document.body.className = theme;
-        themeDots.forEach(d => d.classList.remove('active'));
-        this.classList.add('active');
-        localStorage.setItem('selected_theme', theme);
-      });
-    });
-
-    // Restore theme
-    const savedTheme = localStorage.getItem('selected_theme') || 'dark';
-    document.body.className = savedTheme;
-    themeDots.forEach(dot => {
-      if (dot.dataset.theme === savedTheme) {
-        dot.classList.add('active');
-      }
-    });
-
-    // Block context menu & devtools
-    document.addEventListener('contextmenu', (e) => { 
-      e.preventDefault(); 
-      return false; 
-    });
-    
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'F12' || 
-          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || 
-          (e.ctrlKey && e.key === 'U')) {
-        e.preventDefault();
-        return false;
-      }
-      if (e.ctrlKey && e.key === 'p') { 
-        e.preventDefault(); 
-        return false; 
-      }
-    });
-
-    // ---------- INIT ----------
-    overlay.classList.remove('hidden');
-    createArea.style.display = 'none';
-    setTimeout(() => passInput.focus(), 200);
-    
-    // Try to load from cache first
-    const localBackup = localStorage.getItem('secret_posts_backup');
-    if (localBackup) {
-      try {
-        posts = JSON.parse(localBackup);
-        renderPosts();
-      } catch(e) {}
-    }
-
-    console.log('🚀 Secret Files App Loaded');
-    console.log('📊 Supabase URL:', SUPABASE_URL);
-    console.log('💡 Login with password: secret2026');
-  })();
-</script>
+      console.log('🚀 Secret Files App Loaded');
+      console.log('👑 Admin password: secret2026');
+      console.log('👁️ Visitor password: visitor123');
+    })();
+  </script>
 </body>
 </html>
